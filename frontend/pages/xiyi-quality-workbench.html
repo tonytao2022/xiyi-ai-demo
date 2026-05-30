@@ -201,7 +201,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <script>
 const API = '/api/v1/xiyi';
 
-// ─── 页面切换 ───
+// ------ 页面切换 ------
 function switchPage(page) {
   document.querySelectorAll('.main-content > [id^=page]').forEach(el => el.style.display = 'none');
   const el = document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1));
@@ -213,7 +213,7 @@ function switchPage(page) {
   if (idx >= 0) document.querySelectorAll('.nav-item')[idx + 1].classList.add('active');
 }
 
-// ─── 颜色工具 ───
+// ------ 颜色工具 ------
 function kpiColor(ind) {
   const level = ind.alert_level || 'info';
   if (level === 'danger') return 'var(--color-defect)';
@@ -228,7 +228,7 @@ function thresholdStr(ind) {
   return '';
 }
 
-// ─── 加载所有数据 ───
+// ------ 加载所有数据 ------
 async function loadAll() {
   const badge = document.getElementById('apiBadge');
   badge.textContent = '🔄 连接中...';
@@ -310,7 +310,7 @@ async function loadAll() {
   }
 }
 
-// ─── 启动分析 ───
+// ------ 启动分析 ------
 async function startAnalysis() {
   const sceneId = document.getElementById('sceneSelect').value;
   const title = document.getElementById('analysisTitle').value || '品质分析';
@@ -365,7 +365,7 @@ loadAll();
 @media(max-width:768px){.detail-grid{grid-template-columns:1fr}}
 </style>
 <script>
-// ═══ 场景详情弹窗 ═══
+// ====== 场景详情弹窗 ======
 async function showSceneDetail(sceneId, sceneName) {
   let panel = document.getElementById('sceneDetailPanel');
   if (panel) panel.remove();
@@ -478,3 +478,92 @@ async function showSceneDetail(sceneId, sceneName) {
 // 修改showSceneDetail函数的调用
 // 直接用 onclick 中绑定了
 </script>
+
+// ====== 场景数据摘要（7个场景各自专属） ======
+// 基于从API拉的mock数据动态计算
+window._renderSceneSummary = function(sceneId, mockRows) {
+  const el = document.getElementById('sceneDataCards');
+  if (!el) return;
+  
+  const data = mockRows.map(r => r.data || {});
+  let cards = [{label:'数据条数', value: data.length+'条'}];
+  
+  if (sceneId === 1) {
+    const fpys = data.map(d=>d.fpy).filter(v=>v);
+    const avg = fpys.length ? (fpys.reduce((a,b)=>a+b,0)/fpys.length).toFixed(2) : '—';
+    cards = [
+      {label:'近30日均FPY', value: avg+'%', color: avg < 97.5 ? 'var(--color-warning)' : 'var(--color-bear)'},
+      {label:'样本数', value: fpys.length+'条'},
+      {label:'产线数', value: '3条'},
+      {label:'异常产线', value: '2#烧结线(W40)', color: 'var(--color-warning)'},
+    ];
+  } else if (sceneId === 2) {
+    const abn = data.filter(d=>d.is_abnormal).length;
+    cards = [
+      {label:'磁物异常设备', value: abn+'台', color: abn > 5 ? 'var(--color-warning)' : 'var(--color-bear)'},
+      {label:'监控设备数', value: '4台'},
+      {label:'高风险', value: '2#烧结炉', color: 'var(--color-warning)'},
+    ];
+  } else if (sceneId === 3) {
+    const pending = data.filter(d=>d.status==='pending'||d.status==='processing').length;
+    cards = [
+      {label:'待处理异常', value: pending, color: pending > 3 ? 'var(--color-warning)' : 'var(--color-bear)'},
+      {label:'总异常批次', value: data.length},
+    ];
+  } else if (sceneId === 4) {
+    const total = data.reduce((s,d)=>s+(d.total_value||0),0);
+    const old180 = data.filter(d=>(d.aging_days||0) > 180).length;
+    cards = [
+      {label:'呆滞库存总值', value: (total/10000).toFixed(1)+'万', color: total > 500000 ? 'var(--color-warning)' : 'var(--color-bear)'},
+      {label:'超过180天', value: old180+'项'},
+    ];
+  } else if (sceneId === 5) {
+    const pass = data.filter(d=>d.result==='PASS').length;
+    const rate = data.length ? (pass/data.length*100).toFixed(1) : 0;
+    cards = [
+      {label:'来料合格率', value: rate+'%', color: rate < 95 ? 'var(--color-warning)' : 'var(--color-bear)'},
+      {label:'检验批次', value: data.length},
+      {label:'异常供应商', value: data.filter(d=>d.result==='FAIL').length+'家'},
+    ];
+  } else if (sceneId === 6) {
+    const fpys = data.map(d=>d.fpy).filter(v=>v);
+    const avg = fpys.length ? (fpys.reduce((a,b)=>a+b,0)/fpys.length).toFixed(2) : '—';
+    cards = [
+      {label:'过程FPY均值', value: avg+'%', color: avg < 96 ? 'var(--color-warning)' : 'var(--color-bear)'},
+      {label:'工序数', value: '5道'},
+      {label:'薄弱工序', value: '烧结'},
+    ];
+  } else if (sceneId === 7) {
+    const last = data[0] || {};
+    cards = [
+      {label:'最近COQ率', value: (last.coq_rate||'—')+'%', color: (last.coq_rate||2) > 1.8 ? 'var(--color-warning)' : 'var(--color-bear)'},
+      {label:'趋势', value: last.trend||'—'},
+    ];
+  }
+  
+  el.innerHTML = cards.map(c => `
+    <div style="background:var(--bg-secondary);border-radius:var(--radius);padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:700;color:${c.color||'var(--text-bright)'}">${c.value}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${c.label}</div>
+    </div>
+  `).join('');
+};
+
+// 拦截showSceneDetail中的mock数据，代理原本的mock加载
+const _origShowDetail = window.showSceneDetail;
+window.showSceneDetail = async function(sceneId, sceneName) {
+  const result = await _origShowDetail(sceneId, sceneName);
+  // 场景详情弹窗显示后加载数据摘要
+  setTimeout(async () => {
+    try {
+      const r = await fetch(`${API}/mock/${sceneId}?limit=50`).then(r=>r.json());
+      if (r.code === 0) {
+        window._renderSceneSummary(sceneId, r.data.rows || []);
+      }
+    } catch(e) {}
+  }, 300);
+  return result;
+};
+</script>
+</body>
+</html>
