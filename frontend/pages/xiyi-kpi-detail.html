@@ -16,7 +16,7 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
 .stat .l{font-size:12px;color:var(--muted);margin-bottom:4px}
 .stat .v{font-size:24px;font-weight:700}
 .stat .t{font-size:11px;color:var(--muted);margin-top:2px}
-.chart{display:flex;align-items:flex-end;gap:6px;height:150px;padding:12px 0}
+.chart{padding:12px 0}
 .chart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
 .chart .bar .val{font-size:10px;color:var(--muted)}
 .chart .bar .col{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(to top, var(--blue), rgba(59,130,246,0.3))}
@@ -62,12 +62,30 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
     trendVals.push((base + (Math.random() - 0.5) * 6).toFixed(1));
   }
   var targetVal = parseFloat(target) || 100;
-  var bars = '';
+  var points = [];
   for (var j = 0; j < 12; j++) {
     var v = parseFloat(trendVals[j]);
-    var h = Math.min(100, Math.max(15, v / targetVal * 100));
-    bars += '<div class="bar"><span class="val">' + v + '</span><div class="col" style="height:' + h + 'px"></div><span class="w">' + weeks[j] + '</span></div>';
+    var x = 30 + j * 55;
+    var y = 100 - (v / targetVal * 70);
+    points.push({x:x, y:y, v:v, w:weeks[j]});
   }
+  var svgPath = 'M' + points.map(function(p){return p.x + ',' + p.y}).join(' L');
+  var svgDots = points.map(function(p){
+    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="var(--blue)" stroke="#fff" stroke-width="2"/>';
+  }).join('');
+  var svgLabels = points.map(function(p){
+    return '<text x="' + p.x + '" y="130" text-anchor="middle" fill="var(--muted)" font-size="10">' + p.w + '</text>';
+  }).join('');
+  var svgValues = points.map(function(p){
+    return '<text x="' + p.x + '" y="' + (p.y-8) + '" text-anchor="middle" fill="var(--text2)" font-size="10">' + p.v + '</text>';
+  }).join('');
+
+  var lineChart = '<svg width="660" height="140" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="' + svgPath + '" stroke="var(--blue)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>' +
+    '<path d="' + svgPath + '" stroke="var(--blue)" stroke-width="0.5" fill="url(#grad)" opacity="0.15"/>' +
+    '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--blue)"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/></linearGradient></defs>' +
+    svgValues + svgDots + svgLabels +
+    '</svg>';
 
   // 指标定义描述
   var desc = name + '：衡量';
@@ -94,7 +112,7 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
   html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:4px">指标定义</div><div style="font-size:13px;color:var(--text2)">' + desc + '</div></div>';
 
   // 历史趋势
-  html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">历史趋势（近12周）</div><div class="chart">' + bars + '</div></div>';
+  html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">历史趋势（近12周）</div><div class="chart">' + lineChart + '</div></div>';
 
   // 关联维度
   html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">关联分解维度</div><div class="dims"><div class="item">📂 产线维度</div><div class="item">📂 班次维度</div><div class="item">📂 物料维度</div><div class="item">📂 设备维度</div></div></div>';
