@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>兮易AI大脑 · 企业经营智能体平台</title>
+<style>
+:root{--bg:#0a0e17;--bg2:#111827;--card:#161d2a;--border:#1e2d4a;--text:#e2e8f0;--text2:#94a3b8;--muted:#64748b;--blue:#3b82f6;--green:#22c55e;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+.logo{text-align:center;margin-bottom:40px}
+.logo h1{font-size:28px;font-weight:700;color:#fff;letter-spacing:1px}
+.logo p{font-size:14px;color:var(--muted);margin-top:6px}
+.logo .tagline{font-size:13px;color:var(--blue);margin-top:4px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;width:100%;max-width:900px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-decoration:none;transition:all .25s;cursor:pointer;display:block}
+.card:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 8px 24px rgba(59,130,246,0.12)}
+.card .icon{font-size:32px;margin-bottom:12px}
+.card h3{font-size:16px;color:#fff;margin-bottom:6px}
+.card p{font-size:13px;color:var(--text2);line-height:1.6}
+.card .status{font-size:11px;color:var(--muted);margin-top:12px;display:flex;align-items:center;gap:4px}
+.card .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot-green{background:var(--green)}
+.dot-blue{background:var(--blue)}
+.footer{text-align:center;margin-top:40px;font-size:11px;color:var(--muted);line-height:1.8}
+.footer .version{color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <h1>🏭 兮易AI大脑</h1>
+  <p>企业经营智能体平台 · 本地Demo</p>
+  <div class="tagline">数据采集 → 数据治理 → 数据分析 → 数据展现</div>
+</div>
+
+<div class="cards">
+  <a class="card" href="/xiyi-quality-workbench.html">
+    <div class="icon">🔍</div>
+    <h3>品质专员工作台</h3>
+    <p>在线一次交验合格率管控、磁物健康地图、异常料跟踪、IQC、PMP、COQ七大品质场景，七步分析流程，实时KPI仪表板</p>
+    <div class="status"><span class="dot dot-green"></span> 已部署 · 数据驱动</div>
+  </a>
+
+  <a class="card" href="/xiyi-config-console.html">
+    <div class="icon">⚙️</div>
+    <h3>系统配置管理</h3>
+    <p>场景配置、指标管理、数据标准、数据源管理。新增场景无需编码，通过配置即可完成</p>
+    <div class="status"><span class="dot dot-green"></span> 可配置 · 零硬编码</div>
+  </a>
+
+  <a class="card" href="/xiyi-capa-manager.html">
+    <div class="icon">🔄</div>
+    <h3>CAPA管理</h3>
+    <p>纠正与预防措施闭环管理。从分析结果→改善方案→任务分解→跟踪验证，全流程可追溯</p>
+    <div class="status"><span class="dot dot-green"></span> 已部署 · 闭环管理</div>
+  </a>
+
+  <a class="card" href="/xiyi-ai-demo.html">
+    <div class="icon">🎯</div>
+    <h3>品质专员DEMO（完整版）</h3>
+    <p>414KB原版品质专员工作台，完整展示7个品质场景的细部UI和交互逻辑</p>
+    <div class="status"><span class="dot dot-blue"></span> 演示版 · 功能完整</div>
+  </a>
+</div>
+
+<div class="footer">
+  <div class="version">兮易企业经营AI大脑 · v1.0 · 基于OpenClaw</div>
+  <div>数据库：xiyi_quality（27张表） · 后端：8890端口 · 前端：深色工业风SPA</div>
+</div>
+
+</body>
+</html>
