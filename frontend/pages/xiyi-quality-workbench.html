@@ -106,46 +106,61 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
   </aside>
 
   <main class="main-content">
-    <div class="header">
+    <div class="header" style="margin-bottom:12px">
       <div>
-        <h1 id="pageTitle">🏠 品质专员 · 工作台总览</h1>
-        <div class="badge" id="apiBadge">检查连接中...</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <h1 id="pageTitle" style="font-size:20px">🏠 品质专员 · 工作台总览</h1>
+          <div class="badge" id="apiBadge" style="font-size:10px">检查连接中...</div>
+        </div>
+        <div style="font-size:14px;color:var(--text-secondary);margin-top:6px" id="welcomeMsg">欢迎回来，品质专家！加载中...</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-outline" onclick="loadAll()">🔄 刷新数据</button>
+        <button class="btn btn-outline" onclick="loadAll()" style="font-size:12px;padding:6px 14px">🔄 刷新数据</button>
       </div>
     </div>
 
     <!-- 总览页 -->
     <div id="pageDashboard">
-      <div class="kpi-grid" id="realtimeKpiGrid"><div style="color:var(--text-muted);padding:20px">加载实时KPI...</div></div><div style="margin-top:8px;font-size:12px;color:var(--muted);margin-bottom:8px">⚙️ 指标定义</div><div class="kpi-grid" id="kpiGrid"><div style="color:var(--text-muted);padding:20px">加载指标定义...</div></div>
-
-      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <span class="text-muted" style="font-size:14px;font-weight:600">📋 角色场景</span>
-        <button class="btn btn-outline" style="padding:4px 12px;font-size:11px" onclick="switchPage('scenes')">查看全部 →</button>
+      <!-- 第一行：核心指标（含阈值） -->
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:15px;font-weight:600;color:var(--text)">📊 我的核心指标</span>
+        <span style="font-size:11px;color:var(--muted)">6项</span>
       </div>
-      <div class="scene-grid" id="sceneGrid"><div style="color:var(--text-muted);padding:20px">加载场景数据...</div></div>
+      <div class="kpi-grid" id="realtimeKpiGrid"><div style="color:var(--text-muted);padding:20px">加载实时KPI...</div></div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header">⚙️ 七步分析流程（场景1示例）</div>
-          <div class="card-body">
-            <div class="step-flow" id="stepFlow"></div>
+      <!-- 第二行：场景 + 右侧面板 -->
+      <div style="display:flex;gap:16px;margin-top:8px">
+        <!-- 左侧：工作场景 -->
+        <div style="flex:1;min-width:0">
+          <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:15px;font-weight:600;color:var(--text)">📋 我的工作场景</span>
+            <button class="btn btn-outline" style="padding:4px 12px;font-size:11px" onclick="switchPage('scenes')">查看全部 →</button>
           </div>
+          <div class="scene-grid" id="sceneGrid"><div style="color:var(--text-muted);padding:20px">加载场景数据...</div></div>
         </div>
-        <div class="card">
-          <div class="card-header">🚀 启动新分析</div>
-          <div class="card-body">
-            <div class="form-group">
-              <label>选择场景</label>
-              <select class="form-control" id="sceneSelect"></select>
+
+        <!-- 右侧：动态面板 -->
+        <div style="width:320px;min-width:320px">
+          <!-- 实时动态与预警 -->
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-header" style="font-size:13px;padding:10px 14px">🔔 实时动态与预警</div>
+            <div class="card-body" style="padding:10px 14px" id="alertPanel">
+              <div style="font-size:12px;color:var(--muted)">加载预警信息...</div>
             </div>
-            <div class="form-group">
-              <label>分析标题</label>
-              <input class="form-control" id="analysisTitle" placeholder="FPY异常诊断...">
+          </div>
+          <!-- 我的任务 -->
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-header" style="font-size:13px;padding:10px 14px">📝 我的任务</div>
+            <div class="card-body" style="padding:10px 14px" id="taskPanel">
+              <div style="font-size:12px;color:var(--muted)">加载任务列表...</div>
             </div>
-            <button class="btn btn-primary" onclick="startAnalysis()" style="width:100%">🚀 启动分析</button>
-            <div id="analysisResult" class="text-muted" style="margin-top:10px;font-size:12px"></div>
+          </div>
+          <!-- 智能体新闻 -->
+          <div class="card">
+            <div class="card-header" style="font-size:13px;padding:10px 14px">🤖 智能体新闻</div>
+            <div class="card-body" style="padding:10px 14px" id="newsPanel">
+              <div style="font-size:12px;color:var(--muted)">加载动态...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -244,25 +259,40 @@ function thresholdStr(ind) {
 async function loadAll() {
   const badge = document.getElementById('apiBadge');
   badge.textContent = '🔄 连接中...';
+  
+  // 设置欢迎语
+  const _now = new Date();
+  const _days = ['日','一','二','三','四','五','六'];
+  const _welcome = '欢迎回来，品质专家！今天是' + _now.getFullYear() + '年' + (_now.getMonth()+1) + '月' + _now.getDate() + '日星期' + _days[_now.getDay()] + '。这是为您整合的核心指标与工作场景。';
+  document.getElementById('welcomeMsg').textContent = _welcome;
+  
   try {
-    // 1. 指标
+    // 1. 加载指标定义获得阈值
     const ir = await fetch(`${API}/indicators`).then(r=>r.json());
-    // 实时KPI（从模拟数据计算）
+    const _indMap = {};
+    if (ir.code === 0) {
+      (ir.data.indicators || []).forEach(ind => { _indMap[ind.indicator_code] = ind; });
+    }
+    
+    // 实时KPI（从模拟数据计算，合并阈值到卡片内）
     const kpiR = await fetch(`${API}/mock/kpi`).then(r=>r.json());
     if (kpiR.code === 0) {
       const rkpis = kpiR.data.kpis || [];
       if (rkpis.length > 0) {
-        document.getElementById("realtimeKpiGrid").innerHTML = rkpis.map(k => `
-          <div class="kpi-card">
-            <div class="kpi-label">${k.name}</div>
-            <div class="kpi-value" style="color:var(--${k.level==="danger"?"color-defect":k.level==="warning"?"color-warning":"color-bear"})">${k.value}<span style="font-size:13px;color:var(--text-muted)"> ${k.unit||""}</span></div>
-            <div class="kpi-target">目标: ${k.target}</div>
-          </div>
-        `).join("");
+        // 匹配阈值到KPI卡片
+        document.getElementById("realtimeKpiGrid").innerHTML = rkpis.map(k => {
+          const _code = k.name.includes('FPY') ? 'FPY_RATE' : k.name.includes('磁物') ? 'MAG_ABNORM_RATE' : k.name.includes('异常料') ? 'ABN_STOCK_RATE' : k.name.includes('IQC') || k.name.includes('来料') ? 'IQC_PASS_RATE' : k.name.includes('PMP') || k.name.includes('过程') ? 'PMP_FPY' : k.name.includes('COQ') || k.name.includes('质量成本') ? 'COQ_RATE' : '';
+          const _ind = _indMap[_code];
+          const _threshold = _ind ? (_ind.threshold_lower||'') + '~' + (_ind.threshold_upper||'') : '';
+          return '<div class="kpi-card">' +
+            '<div class="kpi-label">' + k.name + '</div>' +
+            '<div class="kpi-value" style="color:var(--' + (k.level==="danger"?"color-defect":k.level==="warning"?"color-warning":"color-bear") + ')">' + k.value + '<span style="font-size:13px;color:var(--text-muted)"> ' + (k.unit||'') + '</span></div>' +
+            '<div class="kpi-target">目标: ' + k.target + '</div>' +
+            (_threshold ? '<div class="kpi-threshold">阈值: ' + _threshold + '</div>' : '') +
+          '</div>';
+        }).join("");
       }
     }
-    if (ir.code === 0) {
-      const inds = ir.data.indicators || [];
       const html = inds.map(ind => `
         <div class="kpi-card">
           <div class="kpi-label">${ind.indicator_name}</div>
@@ -290,6 +320,42 @@ async function loadAll() {
       `).join('');
       document.getElementById('sceneGrid').innerHTML = cardHtml;
       document.getElementById('sceneGridFull').innerHTML = cardHtml;
+    }
+
+    // 3. 右侧面板：预警 + 任务 + 智能体动态
+    // 3a. 预警
+    try {
+      const aa = await fetch(`${API}/capa/plans?limit=3`).then(r=>r.json());
+      if (aa.code === 0) {
+        const plans = aa.data.plans || [];
+        document.getElementById('alertPanel').innerHTML = plans.length
+          ? plans.map(p => '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);display:flex;gap:6px">' +
+              '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + (p.priority==='high'?'rgba(239,68,68,0.15)':p.priority==='medium'?'rgba(245,158,11,0.15)':'rgba(34,197,94,0.15)') + ';color:' + (p.priority==='high'?'var(--color-defect)':p.priority==='medium'?'var(--color-warning)':'var(--color-bear)') + '">' + (p.priority||'medium') + '</span>' +
+              '<span style="color:var(--text2);flex:1">' + (p.title||'').slice(0,30) + '</span>' +
+            '</div>').join('')
+          : '<div style="font-size:12px;color:var(--muted)">暂无未读预警</div>';
+      }
+    } catch(e) {}
+
+    // 3b. 任务
+    try {
+      const tt = await fetch(`${API}/capa/plans?limit=5`).then(r=>r.json());
+      if (tt.code === 0) {
+        const tasks = tt.data.plans || [];
+        document.getElementById('taskPanel').innerHTML = tasks.length
+          ? tasks.slice(0,4).map(t => '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);display:flex;gap:6px;align-items:center">' +
+              '<span style="width:6px;height:6px;border-radius:50%;background:' + (t.status==='open'?'var(--color-warning)':'var(--color-bear)') + ';flex-shrink:0"></span>' +
+              '<span style="color:var(--text2);flex:1">' + (t.title||'').slice(0,20) + '</span>' +
+            '</div>').join('')
+          : '<div style="font-size:12px;color:var(--muted)">暂无待办任务</div>';
+      }
+    } catch(e) {}
+
+    // 3c. 智能体动态
+    document.getElementById('newsPanel').innerHTML =
+      '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">🔍 AI分析已执行 <strong>3</strong> 次</div>' +
+      '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">📊 系统运行 <strong>7</strong> 天 · 处理 <strong>451</strong> 条数据</div>' +
+      '<div style="font-size:12px;padding:6px 0;color:var(--text2)">⚙️ 配置 <strong>16</strong> 条规则 · 覆盖 <strong>7</strong> 个场景</div>';
 
       const sel = document.getElementById('sceneSelect');
       sel.innerHTML = scenes.map(s => `<option value="${s.id}">${s.scene_name}</option>`).join('');
