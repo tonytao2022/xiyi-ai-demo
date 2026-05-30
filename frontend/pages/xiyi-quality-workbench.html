@@ -272,6 +272,7 @@ async function loadAll() {
           const c = k.level === 'danger' ? 'color-defect' : k.level === 'warning' ? 'color-warning' : 'color-bear';
           return '<div class="kpi-card"><div class="kpi-label">' + k.name + '</div><div class="kpi-value" style="color:var(--' + c + ')">' + k.value + '<span style="font-size:13px;color:var(--text-muted)"> ' + (k.unit||'') + '</span></div><div class="kpi-target">目标: ' + k.target + '</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showKpiDetail(' + idx + ')" style="font-size:10px;padding:2px 6px">指标详情</button><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showDiagnose(' + idx + ')" style="font-size:10px;padding:2px 6px;color:var(--color-warning);border-color:var(--color-warning)">诊断根因</button></div></div>';
         }).join('');
+      _kpiDetailList = rkpis;
       }
     }
     // 2. 场景
