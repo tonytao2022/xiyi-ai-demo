@@ -281,7 +281,7 @@ async function loadAll() {
     if (sr.code === 0) {
       const scenes = sr.data.scenes || [];
       document.getElementById('sceneGrid').innerHTML = scenes.map(s =>
-        '<div class="scene-card" onclick="window.location.href='/xiyi-diagnose.html?scene=' + s.id + ',\'' + (s.scene_name||'') + '\')"><div class="cat">' + (s.category||'') + '</div><div class="scene-name">' + (s.scene_name||'') + '</div><div class="scene-desc">' + ((s.description||'').length>80 ? (s.description||'').slice(0,80)+'...' : s.description||'') + '</div><div class="step-badge"><span>' + (s.step_count||7) + '\u6b65</span></div><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();aiAnalyze(' + s.id + ',\'' + (s.scene_name||'') + '\')" style="margin-top:8px;width:100%;font-size:12px">\u{1F9E0} AI\u5206\u6790</button></div>'
+        '<div class="scene-card" onclick="window.location.href='/xiyi-diagnose.html?scene=' + s.id + '\'' + (s.scene_name||'') + '\')"><div class="cat">' + (s.category||'') + '</div><div class="scene-name">' + (s.scene_name||'') + '</div><div class="scene-desc">' + ((s.description||'').length>80 ? (s.description||'').slice(0,80)+'...' : s.description||'') + '</div><div class="step-badge"><span>' + (s.step_count||7) + '\u6b65</span></div><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();aiAnalyze(' + s.id + '\'' + (s.scene_name||'') + '\')" style="margin-top:8px;width:100%;font-size:12px">\u{1F9E0} AI\u5206\u6790</button></div>'
       ).join('');
     }
     // 3. 右侧面板
