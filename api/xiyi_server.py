@@ -557,9 +557,39 @@ def ai_analysis_run():
                 'hit_count': 0,
                 'max_severity': 'info',
             }
-
+            
             cur.execute("UPDATE ag_agent_task SET status='done', result=%s, completed_at=NOW() WHERE trace_id=%s",
                 (json.dumps(report), trace_id))
+            
+            # 5. 自动创建CAPA方案（AI分析过程中发现异常指标时）
+            _plan_code = f"AI-{trace_id[-8:]}"
+            _has_alarm = '异常' in _ai_response or '预警' in _ai_response or '超标' in _ai_response or '不合格' in _ai_response
+            _root_cause_hint = ''
+            _action_hint = ''
+            for _line in _ai_response.split('\n'):
+                if '根因' in _line or '原因' in _line or '排查' in _line:
+                    _root_cause_hint = _line[:200]
+                if '行动' in _line or '建议' in _line or '改善' in _line or '计划' in _line:
+                    _action_hint = _line[:200]
+            
+            if _has_alarm:
+                cur.execute(
+                    "INSERT INTO ap_capa_plan (plan_code,instance_id,title,root_cause,plan_content,priority,status,created_by) VALUES(%s,0,%s,%s,%s,%s,'open','openclaw_ai')",
+                    (_plan_code, f'[AI自动] {scene_name} 异常告警分析',
+                     _root_cause_hint or 'AI分析识别到异常指标，建议人工确认根因',
+                     _action_hint or '1. 确认异常指标的真实性\n2. 启动4M1E排查流程\n3. 制定纠正预防措施',
+                     'medium'))
+                _plan_id = cur.lastrowid
+                # 创建默认任务
+                _task_code = f"AI-TASK-{trace_id[-6:]}"
+                cur.execute(
+                    "INSERT INTO ap_capa_task (plan_id,task_code,title,assignee,status) VALUES(%s,%s,%s,%s,'open')",
+                    (_plan_id, _task_code, f'{scene_name} 异常排查与改善', '品质专员'))
+            else:
+                # 即使没有异常也创建一份常规方案
+                cur.execute(
+                    "INSERT INTO ap_capa_plan (plan_code,instance_id,title,root_cause,plan_content,priority,status,created_by) VALUES(%s,0,%s,'常规分析','1. 持续监控指标趋势\n2. 保持当前控制措施\n3. 定期回顾分析结果','low','open','openclaw_ai')",
+                    (_plan_code + '-R', f'[AI常规] {scene_name} 例行分析'))
 
             return api_success({
                 'trace_id': trace_id,
