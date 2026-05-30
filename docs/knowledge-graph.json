@@ -1,0 +1,773 @@
+{
+  "metadata": {
+    "title": "Tony项目全景知识图谱",
+    "generated_at": "2026-05-30T18:35:01.451209",
+    "version": "2.0"
+  },
+  "nodes": [
+    {
+      "id": "project:kexin",
+      "label": "陶可馨青少年科技创新项目",
+      "type": "project",
+      "properties": {
+        "status": "completed",
+        "works": "已完成闭环，参赛材料已归档"
+      }
+    },
+    {
+      "id": "entity:kexin_name",
+      "label": "《标准方法失效时：一个面向高度集中数据的三维复合评分模型的课题研究（基于Python）》",
+      "type": "work_name"
+    },
+    {
+      "id": "entity:author_kexin",
+      "label": "陶可馨",
+      "type": "person",
+      "properties": {
+        "role": "课题负责人"
+      }
+    },
+    {
+      "id": "entity:author_zhou",
+      "label": "周睿祺",
+      "type": "person",
+      "properties": {
+        "role": "课题成员"
+      }
+    },
+    {
+      "id": "entity:teacher_zhang",
+      "label": "张梦",
+      "type": "person",
+      "properties": {
+        "role": "指导教师"
+      }
+    },
+    {
+      "id": "entity:school",
+      "label": "华东师范大学附属第一中学",
+      "type": "organization"
+    },
+    {
+      "id": "concept:percentile",
+      "label": "百分位数排名算法",
+      "type": "algorithm"
+    },
+    {
+      "id": "concept:logistic",
+      "label": "Logistic非线性映射评分",
+      "type": "algorithm"
+    },
+    {
+      "id": "concept:3d_model",
+      "label": "三维复合评分模型",
+      "type": "algorithm",
+      "properties": {
+        "公式": "Score = 0.33×渗透深度 + 0.50×R&D锚定 + 0.17×(100-工具偏离)"
+      }
+    },
+    {
+      "id": "concept:rd_anchor",
+      "label": "R&D锚定法",
+      "type": "method",
+      "properties": {
+        "数据来源": "世界银行API (GB.XPD.RSDV.GD.ZS)"
+      }
+    },
+    {
+      "id": "dataset:global_ai",
+      "label": "全球AI工具采用数据集",
+      "type": "dataset",
+      "properties": {
+        "记录数": 145000,
+        "覆盖": "10国×5工具×10行业×2年"
+      }
+    },
+    {
+      "id": "dataset:worldbank_rd",
+      "label": "世界银行R&D数据",
+      "type": "dataset",
+      "properties": {
+        "指标": "R&D支出占GDP比例(2021年)"
+      }
+    },
+    {
+      "id": "entity:kexin_dir",
+      "label": "项目目录",
+      "type": "file_path",
+      "properties": {
+        "路径": "/root/.openclaw/workspace/projects/陶可馨的青少年科技创新项目/"
+      }
+    },
+    {
+      "id": "entity:output_dir",
+      "label": "输出目录",
+      "type": "file_path",
+      "properties": {
+        "路径": "/root/.openclaw/workspace/projects/陶可馨的青少年科技创新项目/代码实现/output/"
+      }
+    },
+    {
+      "id": "entity:rank_South Korea",
+      "label": "South Korea (80.9分)",
+      "type": "evaluation_result",
+      "properties": {
+        "score": 80.9,
+        "reason": "R&D全球第一4.60%"
+      }
+    },
+    {
+      "id": "entity:rank_USA",
+      "label": "USA (73.4分)",
+      "type": "evaluation_result",
+      "properties": {
+        "score": 73.4,
+        "reason": "R&D投入高3.47%"
+      }
+    },
+    {
+      "id": "entity:rank_Germany",
+      "label": "Germany (73.1分)",
+      "type": "evaluation_result",
+      "properties": {
+        "score": 73.1,
+        "reason": "工业4.0根基"
+      }
+    },
+    {
+      "id": "entity:rank_UK",
+      "label": "UK (72.0分)",
+      "type": "evaluation_result",
+      "properties": {
+        "score": 72.0,
+        "reason": "金融AI渗透领先"
+      }
+    },
+    {
+      "id": "entity:rank_China",
+      "label": "China (57.8分)",
+      "type": "evaluation_result",
+      "properties": {
+        "score": 57.8,
+        "reason": "R&D增长较快"
+      }
+    },
+    {
+      "id": "project:stock",
+      "label": "陶的投资预测模型项目（股票系统）",
+      "type": "project",
+      "properties": {
+        "status": "实盘观察期",
+        "port": "8887/8888/8889",
+        "前端": "stock-manager"
+      }
+    },
+    {
+      "id": "entity:stock_dir",
+      "label": "项目目录",
+      "type": "file_path",
+      "properties": {
+        "路径": "/root/.openclaw/workspace/projects/陶的投资预测模型项目/代码实现/"
+      }
+    },
+    {
+      "id": "skill:tushare",
+      "label": "Tushare数据源",
+      "type": "skill"
+    },
+    {
+      "id": "concept:scoring_engine",
+      "label": "评分引擎(v4.0)",
+      "type": "algorithm",
+      "properties": {
+        "覆盖": "95只监控池",
+        "记录": "1631条trend_score"
+      }
+    },
+    {
+      "id": "concept:chanlun",
+      "label": "缠论结构分析",
+      "type": "algorithm"
+    },
+    {
+      "id": "concept:step_strategy",
+      "label": "阶梯动态持有策略",
+      "type": "algorithm"
+    },
+    {
+      "id": "concept:entropy_weight",
+      "label": "熵权法",
+      "type": "algorithm"
+    },
+    {
+      "id": "entity:backup_db",
+      "label": "每日数据库备份",
+      "type": "task",
+      "properties": {
+        "时间": "03:00",
+        "方式": "mysqldump→gzip→git"
+      }
+    },
+    {
+      "id": "entity:data_pipeline",
+      "label": "数据管道",
+      "type": "task",
+      "properties": {
+        "时间": "工作日16:00"
+      }
+    },
+    {
+      "id": "entity:stock_git",
+      "label": "Git仓库",
+      "type": "git_repo",
+      "properties": {
+        "地址": "tonytao2022/tony-stock-manager-v1"
+      }
+    },
+    {
+      "id": "concept:db_schema",
+      "label": "数据字典页面",
+      "type": "product",
+      "properties": {
+        "访问": "/stock-manager/db-dictionary.html"
+      }
+    },
+    {
+      "id": "concept:holding_ocr",
+      "label": "持仓OCR导入+增删改",
+      "type": "product"
+    },
+    {
+      "id": "concept:email_push",
+      "label": "邮件推送",
+      "type": "product",
+      "properties": {
+        "收件": "12211662@qq.com"
+      }
+    },
+    {
+      "id": "concept:backtest_v2",
+      "label": "综合回测v2（四维分析）",
+      "type": "algorithm",
+      "properties": {
+        "脚本": "backtest_01~04"
+      }
+    },
+    {
+      "id": "concept:bt_survival",
+      "label": "生存偏差交叉验证",
+      "type": "evaluation",
+      "properties": {
+        "结论": "带止损30日均收益+28.48%"
+      }
+    },
+    {
+      "id": "concept:bt_chaos",
+      "label": "混沌三子态",
+      "type": "evaluation",
+      "properties": {
+        "结论": "最佳持有期60日"
+      }
+    },
+    {
+      "id": "concept:bt_factor",
+      "label": "因子归因",
+      "type": "evaluation",
+      "properties": {
+        "结论": "L1/L2有效，L3偏弱"
+      }
+    },
+    {
+      "id": "concept:bt_season",
+      "label": "季节分档×持有期",
+      "type": "evaluation",
+      "properties": {
+        "结论": "秋季夏普0.98"
+      }
+    },
+    {
+      "id": "project:xiyi",
+      "label": "兮易AI大脑品质专员平台本地Demo",
+      "type": "project",
+      "properties": {
+        "status": "Phase 1 Day 1-4超前完成",
+        "port": "8890",
+        "数据库": "xiyi_quality（独立）"
+      }
+    },
+    {
+      "id": "entity:xiyi_dir",
+      "label": "项目目录",
+      "type": "file_path",
+      "properties": {
+        "路径": "/root/.openclaw/workspace/projects/兮易clawai-demo/"
+      }
+    },
+    {
+      "id": "entity:xiyi_git",
+      "label": "Git仓库",
+      "type": "git_repo",
+      "properties": {
+        "地址": "tonytao2022/xiyi-ai-demo"
+      }
+    },
+    {
+      "id": "layer:collect",
+      "label": "数据采集层",
+      "type": "architecture_layer",
+      "properties": {
+        "表数": 7
+      }
+    },
+    {
+      "id": "layer:governance",
+      "label": "数据治理层",
+      "type": "architecture_layer",
+      "properties": {
+        "表数": 8
+      }
+    },
+    {
+      "id": "layer:application",
+      "label": "数据应用层",
+      "type": "architecture_layer",
+      "properties": {
+        "表数": 9
+      }
+    },
+    {
+      "id": "layer:presentation",
+      "label": "数据展现层",
+      "type": "architecture_layer",
+      "properties": {
+        "表数": 3
+      }
+    },
+    {
+      "id": "scene:all",
+      "label": "7个品质工作场景",
+      "type": "scene_config"
+    },
+    {
+      "id": "scene:fpy",
+      "label": "场景1: 在线一次交验合格率管控",
+      "type": "scene"
+    },
+    {
+      "id": "scene:mag",
+      "label": "场景2: 磁物健康地图指标监控",
+      "type": "scene"
+    },
+    {
+      "id": "scene:abn_stock",
+      "label": "场景3: 异常料情况跟踪分析",
+      "type": "scene"
+    },
+    {
+      "id": "scene:deadstock",
+      "label": "场景4: 库存呆滞情况跟踪分析",
+      "type": "scene"
+    },
+    {
+      "id": "scene:iqc",
+      "label": "场景5: 原料到货检验合格率管控(IQC)",
+      "type": "scene"
+    },
+    {
+      "id": "scene:pmp",
+      "label": "场景6: 制造过程磁物合格率监控(PMP)",
+      "type": "scene"
+    },
+    {
+      "id": "scene:coq",
+      "label": "场景7: 全业务质量损失成本(COQ)分析",
+      "type": "scene"
+    },
+    {
+      "id": "step:7steps",
+      "label": "七步分析流程",
+      "type": "method",
+      "properties": {
+        "步骤": "定义→分析→4M1E→根因→归因→CAPA→跟踪"
+      }
+    },
+    {
+      "id": "api:xiyi_server",
+      "label": "8890后端API服务",
+      "type": "service",
+      "properties": {
+        "文件": "api/xiyi_server.py"
+      }
+    },
+    {
+      "id": "api:mock_kpi",
+      "label": "实时KPI计算",
+      "type": "api",
+      "properties": {
+        "端点": "/api/v1/xiyi/mock/kpi"
+      }
+    },
+    {
+      "id": "api:scenes",
+      "label": "场景管理API",
+      "type": "api",
+      "properties": {
+        "端点": "/api/v1/xiyi/scenes"
+      }
+    },
+    {
+      "id": "api:analysis",
+      "label": "分析流程API",
+      "type": "api",
+      "properties": {
+        "端点": "/api/v1/xiyi/analysis"
+      }
+    },
+    {
+      "id": "data:451rows",
+      "label": "451条模拟质检数据",
+      "type": "mock_data",
+      "properties": {
+        "数据覆盖": "7场景全部"
+      }
+    },
+    {
+      "id": "data:27tables",
+      "label": "27张表DDL",
+      "type": "database_schema"
+    },
+    {
+      "id": "frontend:workbench",
+      "label": "品质专员工作台SPA",
+      "type": "frontend",
+      "properties": {
+        "URL": "http://43.128.119.244/xiyi-quality-workbench.html"
+      }
+    },
+    {
+      "id": "frontend:demo",
+      "label": "品质专员DEMO硬编码版",
+      "type": "frontend",
+      "properties": {
+        "URL": "http://43.128.119.244/xiyi-ai-demo.html"
+      }
+    },
+    {
+      "id": "me:user",
+      "label": "Tony（陶）",
+      "type": "person",
+      "properties": {
+        "role": "IT事业部总经理"
+      }
+    },
+    {
+      "id": "me:assistant",
+      "label": "Main（小助手）",
+      "type": "ai_agent",
+      "properties": {
+        "role": "数字化战略助理",
+        "skills": "多代理协作/数据分析/项目管理"
+      }
+    },
+    {
+      "id": "entity:today",
+      "label": "2026-05-30",
+      "type": "date",
+      "properties": {
+        "本周工作": "陶可馨项目闭环+股票系统稳定+兮易平台启动"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "project:kexin",
+      "target": "entity:kexin_name",
+      "label": "产出作品"
+    },
+    {
+      "source": "project:kexin",
+      "target": "entity:author_kexin",
+      "label": "作者"
+    },
+    {
+      "source": "project:kexin",
+      "target": "entity:author_zhou",
+      "label": "作者"
+    },
+    {
+      "source": "project:kexin",
+      "target": "entity:teacher_zhang",
+      "label": "指导教师"
+    },
+    {
+      "source": "project:kexin",
+      "target": "entity:school",
+      "label": "所属学校"
+    },
+    {
+      "source": "project:kexin",
+      "target": "concept:percentile",
+      "label": "包含算法"
+    },
+    {
+      "source": "project:kexin",
+      "target": "concept:logistic",
+      "label": "包含算法"
+    },
+    {
+      "source": "project:kexin",
+      "target": "concept:3d_model",
+      "label": "核心创新"
+    },
+    {
+      "source": "project:kexin",
+      "target": "dataset:global_ai",
+      "label": "使用数据"
+    },
+    {
+      "source": "project:kexin",
+      "target": "dataset:worldbank_rd",
+      "label": "使用数据"
+    },
+    {
+      "source": "concept:3d_model",
+      "target": "concept:rd_anchor",
+      "label": "依赖方法"
+    },
+    {
+      "source": "project:kexin",
+      "target": "entity:kexin_dir",
+      "label": "项目位置"
+    },
+    {
+      "source": "project:stock",
+      "target": "entity:stock_dir",
+      "label": "项目位置"
+    },
+    {
+      "source": "project:stock",
+      "target": "skill:tushare",
+      "label": "数据源"
+    },
+    {
+      "source": "project:stock",
+      "target": "concept:scoring_engine",
+      "label": "核心算法"
+    },
+    {
+      "source": "project:stock",
+      "target": "concept:chanlun",
+      "label": "核心算法"
+    },
+    {
+      "source": "project:stock",
+      "target": "concept:step_strategy",
+      "label": "策略"
+    },
+    {
+      "source": "project:stock",
+      "target": "entity:backup_db",
+      "label": "定时任务"
+    },
+    {
+      "source": "project:stock",
+      "target": "entity:data_pipeline",
+      "label": "定时任务"
+    },
+    {
+      "source": "project:stock",
+      "target": "entity:stock_git",
+      "label": "代码仓库"
+    },
+    {
+      "source": "concept:backtest_v2",
+      "target": "concept:bt_survival",
+      "label": "包含维度"
+    },
+    {
+      "source": "concept:backtest_v2",
+      "target": "concept:bt_chaos",
+      "label": "包含维度"
+    },
+    {
+      "source": "concept:backtest_v2",
+      "target": "concept:bt_factor",
+      "label": "包含维度"
+    },
+    {
+      "source": "concept:backtest_v2",
+      "target": "concept:bt_season",
+      "label": "包含维度"
+    },
+    {
+      "source": "project:stock",
+      "target": "concept:backtest_v2",
+      "label": "回测能力"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "entity:xiyi_dir",
+      "label": "项目位置"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "entity:xiyi_git",
+      "label": "代码仓库"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "layer:collect",
+      "label": "包含层"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "layer:governance",
+      "label": "包含层"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "layer:application",
+      "label": "包含层"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "layer:presentation",
+      "label": "包含层"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "scene:all",
+      "label": "场景"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "step:7steps",
+      "label": "分析方法"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "api:xiyi_server",
+      "label": "服务"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "data:27tables",
+      "label": "数据库"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "data:451rows",
+      "label": "模拟数据"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "frontend:workbench",
+      "label": "前端"
+    },
+    {
+      "source": "project:xiyi",
+      "target": "frontend:demo",
+      "label": "前端"
+    },
+    {
+      "source": "scene:all",
+      "target": "scene:fpy",
+      "label": "包含"
+    },
+    {
+      "source": "scene:all",
+      "target": "scene:mag",
+      "label": "包含"
+    },
+    {
+      "source": "scene:all",
+      "target": "scene:abn_stock",
+      "label": "包含"
+    },
+    {
+      "source": "scene:all",
+      "target": "scene:deadstock",
+      "label": "包含"
+    },
+    {
+      "source": "scene:all",
+      "target": "scene:iqc",
+      "label": "包含"
+    },
+    {
+      "source": "scene:all",
+      "target": "scene:pmp",
+      "label": "包含"
+    },
+    {
+      "source": "scene:all",
+      "target": "scene:coq",
+      "label": "包含"
+    },
+    {
+      "source": "scene:all",
+      "target": "step:7steps",
+      "label": "流程"
+    },
+    {
+      "source": "api:xiyi_server",
+      "target": "api:mock_kpi",
+      "label": "包含"
+    },
+    {
+      "source": "api:xiyi_server",
+      "target": "api:scenes",
+      "label": "包含"
+    },
+    {
+      "source": "api:xiyi_server",
+      "target": "api:analysis",
+      "label": "包含"
+    },
+    {
+      "source": "api:xiyi_server",
+      "target": "data:451rows",
+      "label": "读取"
+    },
+    {
+      "source": "me:user",
+      "target": "project:kexin",
+      "label": "负责项目"
+    },
+    {
+      "source": "me:user",
+      "target": "project:stock",
+      "label": "负责项目"
+    },
+    {
+      "source": "me:user",
+      "target": "project:xiyi",
+      "label": "负责项目"
+    },
+    {
+      "source": "me:assistant",
+      "target": "project:kexin",
+      "label": "协助交付"
+    },
+    {
+      "source": "me:assistant",
+      "target": "project:stock",
+      "label": "协助运行"
+    },
+    {
+      "source": "me:assistant",
+      "target": "project:xiyi",
+      "label": "协助开发"
+    },
+    {
+      "source": "entity:today",
+      "target": "project:kexin",
+      "label": "完成闭环"
+    },
+    {
+      "source": "entity:today",
+      "target": "project:xiyi",
+      "label": "启动开发"
+    }
+  ]
+}
