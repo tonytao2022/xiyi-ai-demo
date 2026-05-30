@@ -374,10 +374,10 @@ function showKpiDetail(idx) {
 }
 
 // 诊断根因弹窗（复用场景详情）
-async function showDiagnose(idx) {
-  // 默认定位到场景1（FPY）的诊断页面
-  const sceneId = 1;
-  await showSceneDetail(sceneId, '');
+function showDiagnose(idx) {
+  // 定位到场景1（FPY），直接触发第一个场景卡片的点击
+  const firstCard = document.querySelector('.scene-card');
+  if (firstCard) firstCard.click();
 }
 </script>
 
