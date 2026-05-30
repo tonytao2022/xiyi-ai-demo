@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品质专员场景1 · 操作验证说明</title>
+<style>
+@page{size:A4;margin:2cm}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:#f8fafc;color:#1e293b;line-height:1.8;max-width:850px;margin:0 auto;padding:30px 20px}
+h1{font-size:24px;color:#1e40af;border-bottom:3px solid #1e40af;padding-bottom:10px;margin-bottom:20px}
+h2{font-size:18px;color:#334155;margin:28px 0 12px;padding-left:10px;border-left:3px solid #3b82f6}
+h3{font-size:15px;color:#475569;margin:16px 0 8px}
+.step{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;margin:14px 0}
+.step-num{display:inline-block;background:#1e40af;color:#fff;width:28px;height:28px;border-radius:50%;text-align:center;line-height:28px;font-size:14px;font-weight:700;margin-right:8px}
+.step-title{font-size:16px;font-weight:600;color:#1e293b}
+.step-action{background:#eff6ff;border-left:4px solid #3b82f6;padding:10px 14px;margin:8px 0;border-radius:4px;font-size:14px}
+.step-action strong{color:#1e40af}
+.step-expect{background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;margin:8px 0;border-radius:4px;font-size:13px;color:#374151}
+.step-expect strong{color:#16a34a}
+.step-note{background:#fffbeb;border-left:4px solid #f59e0b;padding:10px 14px;margin:8px 0;border-radius:4px;font-size:13px;color:#92400e}
+kbd{background:#e2e8f0;padding:2px 8px;border-radius:4px;font-size:12px;border:1px solid #cbd5e1;font-family:monospace}
+code{background:#e2e8f0;padding:1px 6px;border-radius:3px;font-size:13px;color:#1e40af}
+.flow{display:flex;align-items:center;justify-content:center;gap:6px;margin:16px 0;flex-wrap:wrap;font-size:13px}
+.flow-step{background:#1e40af;color:#fff;padding:6px 14px;border-radius:6px}
+.flow-arrow{color:#94a3b8;font-size:18px}
+.summary{background:#f1f5f9;border-radius:8px;padding:16px;margin:16px 0;font-size:13px}
+.summary td{padding:4px 10px}
+.footer{text-align:center;font-size:11px;color:#94a3b8;margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0}
+.checkbox{width:18px;height:18px;border:2px solid #94a3b8;border-radius:4px;display:inline-block;margin-right:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<h1>🏭 品质专员场景1 · 全链路验证操作说明</h1>
+<p style="font-size:14px;color:#64748b;margin-top:-10px">在线一次交验合格率管控(FPY) · 预计耗时3-5分钟</p>
+
+<div class="flow">
+  <span class="flow-step">首页选角色</span><span class="flow-arrow">→</span>
+  <span class="flow-step">KPI仪表板</span><span class="flow-arrow">→</span>
+  <span class="flow-step">点场景1卡片</span><span class="flow-arrow">→</span>
+  <span class="flow-step">AI分析</span><span class="flow-arrow">→</span>
+  <span class="flow-step">CAPA方案</span>
+</div>
+
+<!-- 第1步 -->
+<div class="step">
+  <span class="step-num">1</span><span class="step-title">进入品质专员工作台</span>
+  <div class="step-action"><strong>操作：</strong>打开浏览器访问 <code>http://43.128.119.244/xiyi-index.html</code></div>
+  <div class="step-action"><strong>操作：</strong>点击 <kbd>🔍 品质专员</kbd> 卡片（第一个，带"7个场景"标签）</div>
+  <div class="step-expect"><strong>预期：</strong>页面标题显示"品质专员 · 工作台总览"，左侧导航为品质专员专属菜单</div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<!-- 第2步 -->
+<div class="step">
+  <span class="step-num">2</span><span class="step-title">查看KPI仪表板</span>
+  <div class="step-action"><strong>观察：</strong>页面上方第一行 <kbd>实时KPI</kbd> 卡片，第二行 <kbd>指标定义</kbd></div>
+  <div class="step-expect"><strong>预期：</strong>应看到6项实时KPI：
+    <ul style="margin:4px 0;padding-left:18px">
+      <li>在线一次交验合格率(FPY) — <strong>98.24%</strong>（目标≥99.0%）</li>
+      <li>磁物检验异常率 — <strong>10.0%</strong>（目标0%）</li>
+      <li>异常料待处理 — <strong>14批</strong>（目标0批）</li>
+      <li>来料检验合格率(IQC) — <strong>82.0%</strong>（目标≥95%）</li>
+      <li>过程FPY均值(PMP) — <strong>96.21%</strong>（目标≥97%）</li>
+      <li>质量成本率(COQ) — <strong>1.97%</strong>（目标≤1.8%）</li>
+    </ul>
+  </div>
+  <div class="step-note"><strong>说明：</strong>FPY 98.24%接近目标但未达标，IQC 82%和COQ 1.97%已超标。右侧导航可切"指标体系"查看阈值配置。</div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<!-- 第3步 -->
+<div class="step">
+  <span class="step-num">3</span><span class="step-title">查看品质专员7个场景</span>
+  <div class="step-action"><strong>观察：</strong>KPI下方应有7个场景卡片</div>
+  <div class="step-expect"><strong>预期：</strong>显示7个场景：
+    <ol style="margin:4px 0;padding-left:18px">
+      <li>在线一次交验合格率管控（含🧠AI分析按钮）</li>
+      <li>磁物健康地图指标监控</li>
+      <li>异常料情况跟踪分析</li>
+      <li>库存呆滞情况跟踪分析</li>
+      <li>原料到货检验合格率管控(IQC)</li>
+      <li>制造过程磁物合格率监控(PMP)</li>
+      <li>全业务质量损失成本(COQ)分析</li>
+    </ol>
+    每个卡片底部有 <kbd>🧠 AI分析</kbd> 按钮
+  </div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<!-- 第4步 -->
+<div class="step">
+  <span class="step-num">4</span><span class="step-title">查看场景1详情弹窗</span>
+  <div class="step-action"><strong>操作：</strong>点击场景1卡片 <kbd>在线一次交验合格率管控</kbd></div>
+  <div class="step-expect"><strong>预期：</strong>弹出详情弹窗，包含：
+    <ul style="margin:4px 0;padding-left:18px">
+      <li><strong>七步分析流程</strong> — 问题定义→现象分析→4M1E→根因→归因→CAPA→跟踪</li>
+      <li><strong>4M1E关联因素</strong> — 人(操作技能/中)/机(设备精度/高)/料(正极材料/高)/法(工艺参数/中)</li>
+      <li><strong>关联指标</strong> — FPY_RATE阈值97-99%</li>
+      <li><strong>当前告警</strong> — FPY低于警戒线(W40批次异常)</li>
+      <li><strong>场景数据概览</strong> — 近30日均FPY/样本数/产线数/异常产线</li>
+      <li><strong>数据预览</strong> — 最新5条FPY记录（日期/产线/合格率/不良数）</li>
+    </ul>
+  </div>
+  <div class="step-note"><strong>说明：</strong>数据来自 <code>ds_mock_data</code> 表中场景1的90条模拟FPY数据。W40批次2#烧结线FPY出现断崖下跌至95%左右。</div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<!-- 第5步 -->
+<div class="step">
+  <span class="step-num">5</span><span class="step-title">🧠 AI分析（核心验证）</span>
+  <div class="step-action"><strong>操作：</strong>在场景1卡片底部，点击 <kbd>🧠 AI分析</kbd> 按钮</div>
+  <div class="step-action"><strong>等待：</strong>约3-8秒（OpenClaw调用deepseek-v4-flash模型推理）</div>
+  <div class="step-expect"><strong>预期：</strong>弹窗显示AI结构化分析报告，包含：
+    <ul style="margin:4px 0;padding-left:18px">
+      <li><strong>品质状况评估</strong> — 表格展示FPY/不良率/Cpk/不良集中度/设备状态</li>
+      <li><strong>异常指标识别</strong> — 具体哪些指标不达标</li>
+      <li><strong>4M1E排查方向</strong> — AI建议从人机料法环哪些维度排查</li>
+      <li><strong>下一步行动计划</strong> — 可执行的行动项</li>
+    </ul>
+  </div>
+  <div class="step-note"><strong>技术背景：</strong>前端调用 <code>POST /analysis/ai-run</code> → 服务端通过 <code>openclaw agent -m "prompt" --json</code> 调用deepseek推理 → 结果返回前端渲染。全程不暴露Skill细节到前端。</div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<!-- 第6步 -->
+<div class="step">
+  <span class="step-num">6</span><span class="step-title">验证CAPA自动创建</span>
+  <div class="step-action"><strong>操作：</strong>左侧导航点击 <kbd>🔄 CAPA管理</kbd></div>
+  <div class="step-expect"><strong>预期：</strong>CAPA管理页面应看到：
+    <ul style="margin:4px 0;padding-left:18px">
+      <li><strong>自动创建的CAPA方案</strong> — 标题含"[AI自动] 在线一次交验合格率管控 异常告警分析"</li>
+      <li>优先级：<strong>medium</strong></li>
+      <li>状态：<strong>open</strong></li>
+      <li>点击方案可查看详情、任务分解（含默认改善任务）</li>
+    </ul>
+  </div>
+  <div class="step-note"><strong>说明：</strong>AI分析返回内容中包含"异常""超标"等关键词时，自动触发CAPA创建。同时规则引擎评估FPY<97.5%命中阈值规则。</div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<!-- 第7步 -->
+<div class="step">
+  <span class="step-num">7</span><span class="step-title">系统配置 — 规则管理</span>
+  <div class="step-action"><strong>操作：</strong>左侧导航点击 <kbd>⚙️ 系统配置</kbd> → 点击侧边栏 <kbd>⚙️ 规则管理</kbd></div>
+  <div class="step-expect"><strong>预期：</strong>场景1（FPY合格率管控）下有3条规则：
+    <ul style="margin:4px 0;padding-left:18px">
+      <li>FPY阈值判定 — <strong>threshold</strong>（优先级1）✅ 启用</li>
+      <li>FPY连续下跌检测 — <strong>judgment_tree</strong>（优先级2）✅ 启用</li>
+      <li>FPY周趋势预警 — <strong>judgment_tree</strong>（优先级3）✅ 启用</li>
+    </ul>
+    每条规则可通过 <kbd>✏️</kbd> 编辑，修改阈值/优先级/启用状态
+  </div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<!-- 第8步 -->
+<div class="step">
+  <span class="step-num">8</span><span class="step-title">系统配置 — 指标管理</span>
+  <div class="step-action"><strong>操作：</strong>侧边栏点击 <kbd>📊 指标管理</kbd></div>
+  <div class="step-expect"><strong>预期：</strong>7个指标列表，FPY_RATE排在第一个，阈值<strong>下限97%/上限100%</strong>，告警级别warning。每行最后有<kbd>✏️</kbd>编辑按钮，可修改阈值配置。</div>
+  <div style="margin-top:6px"><span class="checkbox"></span> 已完成</div>
+</div>
+
+<hr>
+
+<div class="summary">
+  <h3 style="margin-top:0">📋 验证总结卡片</h3>
+  <table>
+    <tr><td>✅ KPI实时数据</td><td>6项指标全部从451条模拟数据实时计算</td></tr>
+    <tr><td>✅ 场景详情弹窗</td><td>七步流程/4M1E/指标/告警/数据预览+场景概览</td></tr>
+    <tr><td>✅ AI推理分析</td><td>OpenClaw(depseek-v4-flash)调用成功，返回结构化报告</td></tr>
+    <tr><td>✅ CAPA自动创建</td><td>AI检测到异常后自动生成CAPA方案+任务</td></tr>
+    <tr><td>✅ 规则引擎</td><td>FPY<97.5%命中阈值规则</td></tr>
+    <tr><td>✅ 角色差异化</td><td>品质专员7场景，设备专员3场景，各自独立</td></tr>
+    <tr><td>✅ 全链路trace</td><td>ag_agent_task + ag_tool_call_log 可追溯</td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  兮易AI大脑 · 品质专员平台 · 全链路验证说明<br>
+  更新日期：2026-05-30
+</div>
+
+</body>
+</html>
