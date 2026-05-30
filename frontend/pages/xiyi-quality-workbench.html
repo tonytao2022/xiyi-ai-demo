@@ -118,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 
     <!-- 总览页 -->
     <div id="pageDashboard">
-      <div class="kpi-grid" id="kpiGrid"><div style="color:var(--text-muted);padding:20px">加载KPI数据...</div></div>
+      <div class="kpi-grid" id="realtimeKpiGrid"><div style="color:var(--text-muted);padding:20px">加载实时KPI...</div></div><div style="margin-top:8px;font-size:12px;color:var(--muted);margin-bottom:8px">⚙️ 指标定义</div><div class="kpi-grid" id="kpiGrid"><div style="color:var(--text-muted);padding:20px">加载指标定义...</div></div>
 
       <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <span class="text-muted" style="font-size:14px;font-weight:600">📋 7个工作场景</span>
@@ -240,7 +240,7 @@ async function loadAll() {
     if (kpiR.code === 0) {
       const rkpis = kpiR.data.kpis || [];
       if (rkpis.length > 0) {
-        document.getElementById("kpiGrid").innerHTML = rkpis.map(k => `
+        document.getElementById("realtimeKpiGrid").innerHTML = rkpis.map(k => `
           <div class="kpi-card">
             <div class="kpi-label">${k.name}</div>
             <div class="kpi-value" style="color:var(--${k.level==="danger"?"color-defect":k.level==="warning"?"color-warning":"color-bear"})">${k.value}<span style="font-size:13px;color:var(--text-muted)"> ${k.unit||""}</span></div>
