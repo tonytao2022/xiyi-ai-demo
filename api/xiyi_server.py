@@ -379,6 +379,23 @@ def list_role_scenes(role_code):
             return api_success({'scenes': scenes})
     except Exception as e:
         return api_error(e)
+
+@app.route('/api/v1/xiyi/indicators/<string:code>', methods=['PUT'])
+def update_indicator(code):
+    """更新指标"""
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            sets = []; params = []
+            for f in ['indicator_name','category_id','calc_logic','unit','threshold_lower','threshold_upper','alert_level']:
+                if f in data:
+                    sets.append(f + "=%s"); params.append(data[f])
+            if sets:
+                params.append(code)
+                cur.execute("UPDATE dg_indicator_atom SET " + ",".join(sets) + " WHERE indicator_code=%s", params)
+            return api_success({'message':'更新成功'})
+    except Exception as e:
+        return api_error(e)
 if __name__ == '__main__':
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')

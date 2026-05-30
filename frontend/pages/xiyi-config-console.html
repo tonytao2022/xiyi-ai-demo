@@ -377,3 +377,78 @@ async function addStep(sceneId) {
 
 </body>
 </html>
+
+<script>
+// ═══ 指标编辑 ═══
+async function editIndicator(indCode, indName, curLower, curUpper, curUnit, curLevel) {
+  const r = await fetch(`${API}/indicators`).then(r=>r.json());
+  if (r.code !== 0) return;
+  const ind = (r.data.indicators || []).find(i => i.indicator_code === indCode);
+  if (!ind) return;
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+  overlay.innerHTML = `<div class="modal">
+    <div class="modal-h">📝 编辑指标 — ${ind.indicator_name}</div>
+    <div class="modal-b">
+      <div class="form-group"><label>指标名称</label><input class="form-control" id="ei_name" value="${ind.indicator_name}"></div>
+      <div class="form-group"><label>下限阈值</label><input class="form-control" id="ei_lower" type="number" step="0.1" value="${ind.threshold_lower||0}"></div>
+      <div class="form-group"><label>上限阈值</label><input class="form-control" id="ei_upper" type="number" step="0.1" value="${ind.threshold_upper||0}"></div>
+      <div class="form-group"><label>单位</label><input class="form-control" id="ei_unit" value="${ind.unit||''}"></div>
+      <div class="form-group"><label>告警级别</label>
+        <select class="form-control" id="ei_level">
+          <option ${ind.alert_level==='danger'?'selected':''}>danger</option>
+          <option ${ind.alert_level==='warning'?'selected':''}>warning</option>
+          <option ${ind.alert_level==='success'?'selected':''}>success</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-outline" onclick="this.closest('.modal-overlay').remove()">取消</button>
+      <button class="btn btn-primary" onclick="saveIndicator('${indCode}')">💾 保存</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveIndicator(code) {
+  const name = document.getElementById('ei_name').value;
+  const lower = parseFloat(document.getElementById('ei_lower').value) || 0;
+  const upper = parseFloat(document.getElementById('ei_upper').value) || 0;
+  const unit = document.getElementById('ei_unit').value;
+  const level = document.getElementById('ei_level').value;
+  try {
+    const r = await fetch(`${API}/indicators/${code}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({indicator_name:name, threshold_lower:lower, threshold_upper:upper, unit:unit, alert_level:level})
+    }).then(r=>r.json());
+    if (r.code === 0) {
+      document.querySelector('.modal-overlay')?.remove();
+      loadIndicators();
+    } else alert('❌ ' + (r.error||''));
+  } catch(e) { alert('❌ ' + e.message); }
+}
+
+// 在指标表格加载完成后，为每行追加编辑按钮
+const _origLoadInd = loadIndicators;
+loadIndicators = async function() {
+  await _origLoadInd();
+  // 给表格添加操作列
+  setTimeout(() => {
+    const indTable = document.querySelector('#tabIndicators table');
+    if (!indTable) return;
+    const header = indTable.querySelector('thead tr');
+    if (!header || (header.cells.length > 0 && header.cells[header.cells.length-1].textContent.includes('操作'))) return;
+    header.insertAdjacentHTML('beforeend', '<th>操作</th>');
+    indTable.querySelectorAll('tbody tr').forEach(tr => {
+      const code = tr.cells[0]?.textContent.trim();
+      const name = tr.cells[1]?.textContent.trim();
+      if (code) {
+        tr.insertAdjacentHTML('beforeend', `<td><button class="btn btn-outline btn-sm" onclick="editIndicator('${code}','${name}',0,0,'','')">✏️</button></td>`);
+      }
+    });
+  }, 200);
+};
+</script>
