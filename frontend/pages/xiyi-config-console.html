@@ -152,7 +152,7 @@ function renderSceneList() {
       <td>${s.step_count||7}步</td>
       <td><span class="tag tag-green">${s.status||'published'}</span></td>
       <td>
-        <button class="btn btn-outline btn-sm" onclick="editScene(${s.id})">📝 编辑</button>
+        <button class="btn btn-outline btn-sm" onclick="editScene(${s.id})">📝 编辑</button><button class="btn btn-outline btn-sm" onclick="showStepManager(${s.id},'${s.scene_name}')" style="margin-left:4px">📋 步骤</button>
       </td>
     </tr>`).join('')}
     </tbody></table></div></div>`;
@@ -269,5 +269,111 @@ async function loadStandards() {
 
 loadAll();
 </script>
+
+<script>
+// ═══ 步骤管理 ═══
+async function showStepManager(sceneId, sceneName) {
+  const r = await fetch(`${API}/scenes/${sceneId}/steps`).then(r=>r.json());
+  if (r.code !== 0) return;
+  const steps = r.data.steps || [];
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+  
+  let html = `<div class="modal" style="width:600px">
+    <div class="modal-h">📋 七步流程管理 — ${sceneName}</div>
+    <div class="modal-b">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">拖拽调整顺序，或编辑步骤属性</div>
+      <div id="stepList">`;
+  
+  steps.forEach((s, i) => {
+    html += `<div class="step-card" data-id="${s.id}" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:6px;cursor:grab">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="color:var(--blue);font-weight:600">${s.sort_order}.</span>
+          <span style="font-size:13px;color:var(--text)">${s.step_name}</span>
+          <span style="font-size:10px;color:var(--muted);background:var(--card);padding:1px 6px;border-radius:4px">${s.step_type}</span>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();editStepName(${s.id},'${s.step_name}','${s.step_type}')">✏️</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();moveStep(${sceneId},${s.id},'up',${steps.length})" ${i===0?'disabled':''}>↑</button>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();moveStep(${sceneId},${s.id},'down',${steps.length})" ${i===steps.length-1?'disabled':''}>↓</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteStepConfirm(${sceneId},${s.id},'${s.step_name}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  
+  html += `</div>
+      <button class="btn btn-outline btn-sm" onclick="addStep(${sceneId})" style="margin-top:8px">＋ 添加步骤</button>
+    </div>
+    <div class="modal-f"><button class="btn btn-outline" onclick="this.closest('.modal-overlay').remove()">关闭</button></div>
+  </div>`;
+  
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay);
+}
+
+async function moveStep(sceneId, stepId, direction, total) {
+  const r = await fetch(`${API}/scenes/${sceneId}/steps`).then(r=>r.json());
+  if (r.code !== 0) return;
+  const steps = r.data.steps || [];
+  const idx = steps.findIndex(s => s.id === stepId);
+  if (idx < 0) return;
+  const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (newIdx < 0 || newIdx >= steps.length) return;
+  
+  // 交换sort_order
+  const stepIds = steps.map(s => s.id);
+  [stepIds[idx], stepIds[newIdx]] = [stepIds[newIdx], stepIds[idx]];
+  
+  const rr = await fetch(`${API}/scenes/${sceneId}/steps/reorder`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({step_ids: stepIds})
+  }).then(r=>r.json());
+  
+  if (rr.code === 0) {
+    document.querySelector('.modal-overlay')?.remove();
+    showStepManager(sceneId, steps[0]?.step_name + '等');
+  }
+}
+
+function editStepName(stepId, name, type) {
+  const newName = prompt('步骤名称:', name);
+  if (!newName || newName === name) return;
+  fetch(`${API}/steps/${stepId}`, {
+    method: 'PUT', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({step_name: newName})
+  }).then(r=>r.json()).then(d => {
+    if (d.code === 0) document.querySelector('.modal-overlay')?.remove();
+  });
+}
+
+function deleteStepConfirm(sceneId, stepId, name) {
+  if (!confirm('确认删除步骤「' + name + '」？')) return;
+  fetch(`${API}/steps/${stepId}`, {method: 'DELETE'})
+    .then(r=>r.json()).then(d => {
+      if (d.code === 0) {
+        document.querySelector('.modal-overlay')?.remove();
+        showStepManager(sceneId, name.replace(/^步骤./,'') + '等');
+      }
+    });
+}
+
+async function addStep(sceneId) {
+  const name = prompt('新步骤名称:');
+  if (!name) return;
+  const rr = await fetch(`${API}/scenes/${sceneId}/steps`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({step_name: name, step_type: 'analysis'})
+  }).then(r=>r.json());
+  if (rr.code === 0) {
+    document.querySelector('.modal-overlay')?.remove();
+    showStepManager(sceneId, '');
+  }
+}
+</script>
+
 </body>
 </html>

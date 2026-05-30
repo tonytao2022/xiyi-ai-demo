@@ -280,6 +280,74 @@ def list_task_tracks(task_id):
             return api_success({'tracks': [dict(r) for r in cur.fetchall()]})
     except Exception as e:
         return api_error(e)
+
+@app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps', methods=['GET'])
+def list_steps(scene_id):
+    """获取场景的七步流程"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT * FROM ap_scene_step WHERE scene_id=%s ORDER BY sort_order", (scene_id,))
+            return api_success({'steps': [dict(r) for r in cur.fetchall()]})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/steps/<int:step_id>', methods=['PUT'])
+def update_step_config(step_id):
+    """更新步骤配置信息"""
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            sets = []
+            params = []
+            for f in ['step_name','step_type','description','sort_order','is_ai_required','is_manual_input']:
+                if f in data:
+                    sets.append(f + "=%s")
+                    params.append(data[f])
+            if not sets:
+                return api_error('没有需要更新的字段')
+            params.append(step_id)
+            cur.execute("UPDATE ap_scene_step SET " + ",".join(sets) + " WHERE id=%s", params)
+            return api_success({'message':'更新成功'})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps/reorder', methods=['POST'])
+def reorder_steps(scene_id):
+    """重新排序步骤"""
+    try:
+        data = request.get_json()
+        step_ids = data.get('step_ids', [])
+        with get_cursor() as cur:
+            for i, sid in enumerate(step_ids):
+                cur.execute("UPDATE ap_scene_step SET sort_order=%s WHERE id=%s AND scene_id=%s", (i+1, sid, scene_id))
+            return api_success({'message':'排序已更新'})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps', methods=['POST'])
+def add_step(scene_id):
+    """添加步骤"""
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            cur.execute("SELECT COALESCE(MAX(sort_order),0)+1 FROM ap_scene_step WHERE scene_id=%s", (scene_id,))
+            next_order = cur.fetchone()
+            next_order = next_order['COALESCE(MAX(sort_order),0)+1'] if isinstance(next_order, dict) else next_order[0] if next_order else 1
+            cur.execute("INSERT INTO ap_scene_step (scene_id,step_code,step_name,step_type,sort_order,description) VALUES(%s,%s,%s,%s,%s,%s)",
+                (scene_id, data.get('step_code',f'STEP_{next_order:02d}'), data.get('step_name','新步骤'), data.get('step_type','analysis'), next_order, data.get('description','')))
+            return api_success({'step_id':cur.lastrowid,'sort_order':next_order})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/steps/<int:step_id>', methods=['DELETE'])
+def delete_step(step_id):
+    """删除步骤"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("DELETE FROM ap_scene_step WHERE id=%s", (step_id,))
+            return api_success({'message':'已删除'})
+    except Exception as e:
+        return api_error(e)
 if __name__ == '__main__':
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
