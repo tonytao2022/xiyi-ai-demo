@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统配置 · 兮易AI大脑</title>
+<style>
+:root{--bg:#0a0e17;--bg2:#111827;--card:#161d2a;--border:#1e2d4a;--text:#e2e8f0;--text2:#94a3b8;--muted:#64748b;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#8b5cf6;--radius:8px;--lg:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:200px;min-width:200px;background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;overflow-y:auto}
+.sidebar .logo{padding:18px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:#fff}
+.sidebar .logo span{font-size:10px;color:var(--muted);display:block;margin-top:2px}
+.nav-item{display:flex;align-items:center;padding:10px 16px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;border-left:3px solid transparent;gap:8px}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:rgba(59,130,246,0.08);color:var(--blue);border-left-color:var(--blue)}
+.main{margin-left:200px;padding:20px 24px;flex:1}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.header h1{font-size:18px;color:#fff}
+.header .badge{font-size:11px;padding:3px 10px;border-radius:10px;background:rgba(59,130,246,0.1);color:var(--blue)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--lg);margin-bottom:16px}
+.card-h{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600}
+.card-b{padding:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:7px 8px;border-bottom:2px solid var(--border);color:var(--muted);font-weight:600;text-align:left;font-size:11px}
+td{padding:6px 8px;border-bottom:1px solid rgba(30,45,74,0.5);color:var(--text2)}
+tr:hover td{background:rgba(59,130,246,0.03)}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:var(--radius);font-size:12px;cursor:pointer;transition:all .15s;border:none}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.btn-sm{padding:3px 8px;font-size:11px}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red)}
+.btn-danger:hover{background:rgba(239,68,68,0.1)}
+.tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;font-weight:600}
+.tag-green{background:rgba(34,197,94,0.15);color:var(--green)}
+.tag-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+.tag-yellow{background:rgba(245,158,11,0.15);color:var(--yellow)}
+.tag-red{background:rgba(239,68,68,0.15);color:var(--red)}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab-btn{padding:7px 16px;background:transparent;border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);cursor:pointer;font-size:12px}
+.tab-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.form-group{margin-bottom:12px}
+.form-group label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+.form-control{width:100%;padding:7px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:12px;outline:none}
+.form-control:focus{border-color:var(--blue)}
+select.form-control{cursor:pointer}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal{background:var(--bg);border:1px solid var(--border);border-radius:var(--lg);width:500px;max-width:90vw;max-height:85vh;overflow-y:auto}
+.modal-h{padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
+.modal-b{padding:14px 18px}
+.modal-f{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.empty{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">🏭 兮易AI大脑<span>系统配置台</span></div>
+    <div class="nav-item active" onclick="switchTab('scenes')">📋 场景配置</div>
+    <div class="nav-item" onclick="switchTab('indicators')">📊 指标管理</div>
+    <div class="nav-item" onclick="switchTab('standards')">📐 数据标准</div>
+    <div class="nav-item" onclick="switchTab('datasources')">🔗 数据源</div>
+  </aside>
+
+  <main class="main">
+    <div class="header">
+      <h1 id="pageTitle">📋 场景配置管理</h1>
+      <div class="badge" id="apiBadge">检查连接...</div>
+    </div>
+
+    <!-- 场景配置 -->
+    <div id="tabScenes">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchSubTab('list')">场景列表</button>
+        <button class="tab-btn" onclick="switchSubTab('add')">➕ 新建场景</button>
+      </div>
+      <div id="sceneListContent"></div>
+      <div id="sceneFormContent" style="display:none"></div>
+    </div>
+
+    <!-- 指标管理 -->
+    <div id="tabIndicators" style="display:none"></div>
+
+    <!-- 数据标准 -->
+    <div id="tabStandards" style="display:none"></div>
+
+    <!-- 数据源 -->
+    <div id="tabDatasources" style="display:none"></div>
+  </main>
+</div>
+
+<script>
+const API = '/api/v1/xiyi';
+let _scenes = [];
+
+async function loadAll() {
+  document.getElementById('apiBadge').textContent = '🔄 连接中...';
+  try {
+    const sr = await fetch(`${API}/scenes`).then(r=>r.json());
+    if (sr.code === 0) {
+      _scenes = sr.data.scenes || [];
+      renderSceneList();
+      document.getElementById('apiBadge').textContent = '✅ 已连接';
+    }
+    // 加载指标
+    loadIndicators();
+    // 加载标准字段
+    loadStandards();
+  } catch(e) {
+    document.getElementById('apiBadge').textContent = '❌ ' + e.message;
+  }
+}
+
+// ─── Tab切换 ───
+function switchTab(name) {
+  document.querySelectorAll('.main > [id^=tab]').forEach(el => el.style.display = 'none');
+  const el = document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1));
+  if (el) el.style.display = '';
+  document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+  const titles = {scenes:'📋 场景配置管理', indicators:'📊 指标管理', standards:'📐 数据标准管理', datasources:'🔗 数据源管理'};
+  document.getElementById('pageTitle').textContent = titles[name] || '系统配置';
+  const idx = ['scenes','indicators','standards','datasources'].indexOf(name);
+  if (idx >= 0) document.querySelectorAll('.sidebar .nav-item')[idx].classList.add('active');
+}
+
+function switchSubTab(name) {
+  document.getElementById('sceneListContent').style.display = name === 'list' ? '' : 'none';
+  document.getElementById('sceneFormContent').style.display = name === 'add' ? '' : 'none';
+  document.querySelectorAll('#tabScenes .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#tabScenes .tab-btn')[name==='list'?0:1].classList.add('active');
+  if (name === 'add') renderSceneForm();
+  else renderSceneList();
+}
+
+// ─── 场景列表 ───
+function renderSceneList() {
+  const el = document.getElementById('sceneListContent');
+  if (!_scenes.length) { el.innerHTML = '<div class="empty">暂无场景配置</div>'; return; }
+  
+  // 加载步骤数
+  el.innerHTML = `<div class="card"><div class="card-h">场景配置 <span style="font-size:11px;color:var(--muted);font-weight:400">共${_scenes.length}个</span></div>
+    <div class="card-b"><table><thead><tr>
+      <th>编码</th><th>场景名称</th><th>分类</th><th>步骤</th><th>状态</th><th>操作</th>
+    </tr></thead><tbody>
+    ${_scenes.map(s => `<tr>
+      <td style="color:var(--blue);font-weight:600">${s.scene_code}</td>
+      <td>${s.scene_name}</td>
+      <td><span class="tag tag-blue">${s.category||'—'}</span></td>
+      <td>${s.step_count||7}步</td>
+      <td><span class="tag tag-green">${s.status||'published'}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="editScene(${s.id})">📝 编辑</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+
+// ─── 编辑场景（弹窗） ───
+function editScene(id) {
+  const s = _scenes.find(x => x.id === id);
+  if (!s) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+  overlay.innerHTML = `<div class="modal">
+    <div class="modal-h">📝 编辑场景 — ${s.scene_code}</div>
+    <div class="modal-b">
+      <div class="form-group"><label>场景名称</label><input class="form-control" id="e_name" value="${s.scene_name}"></div>
+      <div class="form-group"><label>分类</label><input class="form-control" id="e_cat" value="${s.category||''}"></div>
+      <div class="form-group"><label>描述</label><textarea class="form-control" id="e_desc" rows="3">${s.description||''}</textarea></div>
+      <div class="form-group"><label>状态</label>
+        <select class="form-control" id="e_status"><option ${s.status==='published'?'selected':''}>published</option>
+        <option ${s.status==='draft'?'selected':''}>draft</option><option ${s.status==='deprecated'?'selected':''}>deprecated</option></select></div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-outline" onclick="this.closest('.modal-overlay').remove()">取消</button>
+      <button class="btn btn-primary" onclick="saveEdit(${s.id})">💾 保存</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function saveEdit(id) {
+  const name = document.getElementById('e_name').value;
+  const cat = document.getElementById('e_cat').value;
+  const desc = document.getElementById('e_desc').value;
+  const status = document.getElementById('e_status').value;
+  try {
+    const r = await fetch(`${API}/scenes/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({scene_name:name, category:cat, description:desc, status})
+    }).then(r=>r.json());
+    if (r.code === 0) {
+      document.querySelector('.modal-overlay')?.remove();
+      loadAll();
+    } else alert('保存失败: ' + (r.error||''));
+  } catch(e) { alert('请求失败: ' + e.message); }
+}
+
+// ─── 新建场景 ───
+function renderSceneForm() {
+  const el = document.getElementById('sceneFormContent');
+  el.style.display = '';
+  el.innerHTML = `<div class="card" style="max-width:600px">
+    <div class="card-h">➕ 新建场景</div>
+    <div class="card-b">
+      <div class="form-group"><label>场景编码</label><input class="form-control" id="f_code" placeholder="QUAL_08"></div>
+      <div class="form-group"><label>场景名称</label><input class="form-control" id="f_name" placeholder="新场景名称"></div>
+      <div class="form-group"><label>分类</label><input class="form-control" id="f_cat" placeholder="品质监控/过程分析/库存预警..."></div>
+      <div class="form-group"><label>描述</label><textarea class="form-control" id="f_desc" rows="3" placeholder="描述这个场景要解决的问题..."></textarea></div>
+      <button class="btn btn-primary" onclick="submitNewScene()" style="margin-top:4px">✅ 创建场景</button>
+    </div>
+  </div>`;
+}
+
+async function submitNewScene() {
+  const code = document.getElementById('f_code').value;
+  const name = document.getElementById('f_name').value;
+  const cat = document.getElementById('f_cat').value;
+  const desc = document.getElementById('f_desc').value;
+  if (!code || !name) { alert('编码和名称不能为空'); return; }
+  try {
+    const r = await fetch(`${API}/scenes`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({scene_code:code, scene_name:name, category:cat, description:desc, role_type:'quality'})
+    }).then(r=>r.json());
+    if (r.code === 0) {
+      alert('✅ 场景创建成功！默认7步流程已添加。');
+      switchSubTab('list');
+      loadAll();
+    } else alert('❌ ' + (r.error||'创建失败'));
+  } catch(e) { alert('❌ ' + e.message); }
+}
+
+// ─── 指标管理 ───
+async function loadIndicators() {
+  try {
+    const r = await fetch(`${API}/indicators`).then(r=>r.json());
+    if (r.code === 0) {
+      const inds = r.data.indicators || [];
+      document.getElementById('tabIndicators').innerHTML = `<div class="card"><div class="card-h">指标定义 <span style="font-size:11px;color:var(--muted);font-weight:400">共${inds.length}个</span></div>
+        <div class="card-b"><table><thead><tr><th>编码</th><th>名称</th><th>分类</th><th>计算逻辑</th><th>单位</th><th>阈值</th></tr></thead><tbody>
+        ${inds.map(ind => `<tr><td style="color:var(--blue)">${ind.indicator_code}</td><td>${ind.indicator_name}</td>
+          <td>${ind.category_name||'—'}</td><td style="font-size:11px;color:var(--muted)">${(ind.calc_logic||'').slice(0,40)}</td>
+          <td>${ind.unit||''}</td><td>${ind.threshold_lower||0}~${ind.threshold_upper||'∞'}</td></tr>`).join('')}
+        </tbody></table></div></div>`;
+    }
+  } catch(e) {}
+}
+
+// ─── 数据标准 ───
+async function loadStandards() {
+  try {
+    const r = await fetch(`${API}/standards`).then(r=>r.json());
+    if (r.code === 0) {
+      const cols = r.data.standards || [];
+      document.getElementById('tabStandards').innerHTML = `<div class="card"><div class="card-h">标准字段 <span style="font-size:11px;color:var(--muted);font-weight:400">共${cols.length}个</span></div>
+        <div class="card-b"><table><thead><tr><th>标准编码</th><th>标准名称</th><th>数据类型</th><th>说明</th></tr></thead><tbody>
+        ${cols.map(c => `<tr><td style="color:var(--blue)">${c.std_code}</td><td>${c.std_name}</td><td>${c.data_type}</td><td>${c.description||'—'}</td></tr>`).join('')}
+        </tbody></table></div></div>`;
+    }
+  } catch(e) {}
+}
+
+loadAll();
+</script>
+</body>
+</html>

@@ -179,6 +179,45 @@ def mock_data(scene_id):
         return api_error(e)
 
 
+
+@app.route('/api/v1/xiyi/scenes/<int:scene_id>', methods=['PUT'])
+def update_scene(scene_id):
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            sets = []
+            params = []
+            for f in ['scene_name','category','description','status','icon','role_type']:
+                if f in data:
+                    sets.append(f + "=%s")
+                    params.append(data[f])
+            if not sets:
+                return api_error('没有需要更新的字段')
+            params.append(scene_id)
+            cur.execute("UPDATE ap_scene_config SET " + ",".join(sets) + " WHERE id=%s", params)
+            return api_success({'message':'更新成功'})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/scenes', methods=['POST'])
+def create_scene():
+    try:
+        data = request.get_json()
+        code = data.get('scene_code','')
+        name = data.get('scene_name','')
+        if not code or not name:
+            return api_error('scene_code和scene_name必填')
+        with get_cursor() as cur:
+            cur.execute("INSERT INTO ap_scene_config (scene_code,scene_name,category,description,role_type,icon) VALUES (%s,%s,%s,%s,%s,%s)",
+                (code, name, data.get('category',''), data.get('description',''), data.get('role_type','quality'), 'chart-line'))
+            scene_id = cur.lastrowid
+            step_types = [('definition','问题定义与数据'),('analysis','现象分析与定位'),('correlation','4M1E关联分析'),('verification','核心根因验证'),('attribution','能力短板归因'),('solution','解决方案CAPA'),('tracking','任务落地跟踪')]
+            for i,(st, sn) in enumerate(step_types, 1):
+                cur.execute("INSERT INTO ap_scene_step (scene_id,step_code,step_name,step_type,sort_order) VALUES(%s,%s,%s,%s,%s)",
+                    (scene_id, code + "_STEP_%02d" % i, sn, st, i))
+            return api_success({'scene_id':scene_id,'message':'创建成功，已添加默认7步流程'})
+    except Exception as e:
+        return api_error(e)
 if __name__ == '__main__':
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
