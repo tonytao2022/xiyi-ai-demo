@@ -348,6 +348,37 @@ def delete_step(step_id):
             return api_success({'message':'已删除'})
     except Exception as e:
         return api_error(e)
+
+@app.route('/api/v1/xiyi/roles', methods=['GET'])
+def list_roles():
+    """获取所有角色"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT * FROM sys_role WHERE is_active=1 ORDER BY sort_order")
+            roles = [dict(r) for r in cur.fetchall()]
+            # 给每个角色附加场景数
+            for role in roles:
+                cur.execute("SELECT COUNT(*) as cnt FROM ap_scene_config WHERE role_type=%s", (role['role_code'],))
+                cnt = cur.fetchone()
+                role['scene_count'] = cnt['cnt'] if cnt else 0
+            return api_success({'roles': roles})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/roles/<string:role_code>/scenes', methods=['GET'])
+def list_role_scenes(role_code):
+    """获取角色下的场景"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT * FROM ap_scene_config WHERE role_type=%s AND status='published' ORDER BY id", (role_code,))
+            scenes = [dict(r) for r in cur.fetchall()]
+            for s in scenes:
+                cur.execute("SELECT COUNT(*) as cnt FROM ap_scene_step WHERE scene_id=%s", (s['id'],))
+                cnt = cur.fetchone()
+                s['step_count'] = cnt['cnt'] if cnt else 0
+            return api_success({'scenes': scenes})
+    except Exception as e:
+        return api_error(e)
 if __name__ == '__main__':
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
