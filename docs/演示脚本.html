@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>兮易AI大脑 · 品质专员平台演示脚本</title>
+<style>
+@page{size:A4;margin:2cm}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:#f8fafc;color:#1e293b;line-height:1.8;max-width:900px;margin:0 auto;padding:40px 24px}
+.cover{text-align:center;padding:60px 0 30px;border-bottom:3px solid #1e40af;margin-bottom:30px}
+.cover h1{font-size:26px;color:#1e40af;margin-bottom:8px}
+.cover .meta{font-size:13px;color:#64748b;margin:2px 0}
+.act{display:flex;gap:12px;margin:0 0 8px;padding:10px 14px;background:#eff6ff;border-left:4px solid #3b82f6;border-radius:4px;font-size:13px}
+.act-ico{font-size:18px;line-height:1.4}
+.act-txt{color:#334155;line-height:1.5}
+.speech{margin:8px 0 16px;padding:10px 14px;background:#f0fdf4;border-left:4px solid #16a34a;border-radius:4px;color:#374151;font-size:13px;line-height:1.6}
+.speech::before{content:"🎤 解说：";font-weight:600;color:#16a34a;display:block;margin-bottom:2px}
+.scene{padding:20px;margin:20px 0;background:#fff;border:1px solid #e2e8f0;border-radius:8px}
+.scene-num{display:inline-block;background:#1e40af;color:#fff;padding:2px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-bottom:8px}
+.scene h2{font-size:18px;color:#1e293b;margin:0 0 8px}
+.scene h3{font-size:14px;color:#475569;margin:12px 0 6px}
+.highlight-box{background:#fffbeb;border:1px solid #f59e0b;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:13px}
+.highlight-box strong{color:#d97706}
+.checklist{background:#f1f5f9;border-radius:6px;padding:14px 18px;margin:20px 0;font-size:12px}
+.checklist li{margin:4px 0;color:#475569}
+code{background:#e2e8f0;padding:1px 6px;border-radius:3px;font-size:12px;color:#1e40af}
+hr{border:none;border-top:1px solid #e2e8f0;margin:24px 0}
+.footer{text-align:center;font-size:11px;color:#94a3b8;margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0}
+@media print{body{padding:20px}}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>🏭 兮易AI大脑 · 品质专员平台</h1>
+  <div class="meta">演示脚本（5-8分钟）</div>
+  <div class="meta">演示对象：潜在客户 / 评委</div>
+  <div class="meta">演示系统：<code>http://43.128.119.244/</code> · 8890端口 · xiyi_quality数据库</div>
+</div>
+
+<!-- 第一幕 -->
+<div class="scene">
+  <div class="scene-num">🎬 第一幕</div>
+  <h2>问题发现（30秒）</h2>
+  <div class="act"><span class="act-ico">🖱️</span><span class="act-txt"><strong>操作：</strong>打开 <code>http://43.128.119.244/xiyi-quality-workbench.html</code></span></div>
+  <div class="speech">这是我们的品质专员工作台，左侧导航区分五个功能模块。看KPI仪表板——FPY一次交验合格率当前98.24%，但请注意告警提示，异常料待处理3批次。这里的指标不是静态数据，而是从MySQL实时读取、从质检记录中动态计算的。</div>
+</div>
+
+<!-- 第二幕 -->
+<div class="scene">
+  <div class="scene-num">🎬 第二幕</div>
+  <h2>七步分析流程（2分钟）</h2>
+  <div class="act"><span class="act-ico">🖱️</span><span class="act-txt"><strong>操作：</strong>切换到"分析流程"页面，展示步骤列表</span></div>
+  <div class="speech">每个质量问题的处理都遵循7步标准流程。从问题定义开始→数据采集→4M1E关联分析→核心根因验证→能力短板归因→制定CAPA方案→任务跟踪闭环。这不是一次性分析，而是可复用的方法论。</div>
+
+  <h3>演示启动分析实例</h3>
+  <div class="act"><span class="act-ico">🖱️</span><span class="act-txt"><strong>操作：</strong>回到总览页，选择场景、输入标题，点击"启动分析"</span></div>
+  <div class="speech">比如FPY异常。输入分析标题，系统自动创建一个分析实例，初始化7步状态。每一步都绑定了数据源、分析模型和报告模板——这是产品级架构的设计。</div>
+</div>
+
+<!-- 第三幕 -->
+<div class="scene">
+  <div class="scene-num">🎬 第三幕</div>
+  <h2>四层架构（1分30秒）</h2>
+  <div class="speech">
+    <p>这个平台的底层是四层架构：</p>
+    <p><strong>数据采集层</strong>：对接MES/LIMS/ERP/SCADA等多源数据。我们已经注册了质检表、分析报告表、出入库履历等7类数据源，每个字段都有元数据管理。</p>
+    <p><strong>数据治理层</strong>：这是核心——8张表支撑元数据管理、指标体系、数据标准和质量规则。比如FPY合格率这个指标，从定义到阈值到告警规则都有完整的配置。</p>
+    <p><strong>数据应用层</strong>：9张表实现场景配置、七步流程引擎、分析实例管理和CAPA任务跟踪。新增一个场景只需要INSERT一条记录，零硬编码。</p>
+    <p><strong>展现层</strong>：品质专员工作台SPA，深色工业风，ECharts可视化。</p>
+  </div>
+</div>
+
+<!-- 第四幕 -->
+<div class="scene">
+  <div class="scene-num">🎬 第四幕</div>
+  <h2>实时数据验证（1分钟）</h2>
+  <div class="act"><span class="act-ico">🖱️</span><span class="act-txt"><strong>操作：</strong>展示场景1-7的列表，点击任一场景卡片查看详情弹窗</span></div>
+  <div class="speech">
+    <p>目前系统配置了7个品质场景：FPY管控、磁物健康、异常料追踪、呆滞库存、IQC来料检验、PMP过程监控、COQ质量成本。每个场景都有完整的模拟数据支撑。</p>
+    <p>数据量：90条FPY日趋势×30天、120条磁物设备监控、50条IQC检验记录——全部从ds_mock_data表读取。这不是静态截图，是实时的数据库查询。</p>
+  </div>
+</div>
+
+<!-- 第五幕 -->
+<div class="scene">
+  <div class="scene-num">🎬 第五幕</div>
+  <h2>现场操作（1分钟）</h2>
+  <div class="act"><span class="act-ico">🖱️</span><span class="act-txt"><strong>操作：</strong>切换到"指标体系"页面展示指标列表，再切换到"数据标准"展示标准字段</span></div>
+  <div class="speech">指标体系定义了7个核心KPI，配有上下限阈值和告警级别。数据标准层定义了6个质检领域的标准字段——检验结果、检验项目、不良代码等——所有源数据进来都按这个标准映射。</div>
+</div>
+
+<!-- 第六幕 -->
+<div class="scene">
+  <div class="scene-num">🎬 第六幕</div>
+  <h2>总结（30秒）</h2>
+  <div class="speech">总结：我们不是在做一个孤立的DEMO，而是一个可配置、可扩展的品质管理平台。</div>
+
+  <div class="highlight-box">
+    <strong>技术亮点（备选，视观众兴趣）</strong>
+    <ul style="margin:6px 0 0 16px;padding:0">
+      <li>27张表完整四层架构</li>
+      <li>7场景×7步=49个流程节点可配置（无需硬编码）</li>
+      <li>前端对接后端API，实时数据驱动</li>
+      <li>与股票系统完全独立（独立DB+独立API+独立Git）</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<!-- 快速启动检查清单 -->
+<h2 style="font-size:16px;color:#1e40af;margin-bottom:12px">✅ 快速启动检查清单</h2>
+<div class="checklist">
+  <p style="font-weight:600;margin-bottom:6px">演示前逐项确认：</p>
+  <ol style="margin:0;padding-left:20px">
+    <li>8890端口运行中：<code>curl http://localhost:8890/health</code></li>
+    <li>451条模拟数据已加载：<code>SELECT COUNT(*) FROM xiyi_quality.ds_mock_data</code></li>
+    <li>前端可访问：<code>http://43.128.119.244/xiyi-quality-workbench.html</code></li>
+    <li>API正常：<code>curl http://localhost:8890/api/v1/xiyi/mock/kpi</code></li>
+  </ol>
+</div>
+
+<div class="footer">
+  兮易企业经营AI大脑 · 品质专员平台 · 演示脚本<br>
+  更新时间：2026-05-30
+</div>
+
+</body>
+</html>
