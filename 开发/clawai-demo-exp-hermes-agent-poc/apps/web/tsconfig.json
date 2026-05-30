@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@ce-demo/report-schema": [
+        "../../packages/report-schema/src/index.ts"
+      ],
+      "@ce-demo/analysis-contract": [
+        "../../packages/analysis-contract/src/index.ts"
+      ]
+    }
+  },
+  "include": ["src"]
+}

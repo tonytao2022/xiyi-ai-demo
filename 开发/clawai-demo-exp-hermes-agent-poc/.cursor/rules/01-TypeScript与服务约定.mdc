@@ -1,0 +1,13 @@
+---
+description: TypeScript、服务端与前端实现约定
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# TypeScript 与服务约定
+
+- 协议定义优先放在 `packages/analysis-contract`、`packages/metric-contract`、`packages/report-schema`。
+- 服务端目录按 `application / domain / infrastructure` 或等价分层组织，避免把查询、规则、路由都堆在一个文件里。
+- 查询接口只接收受控对象，不暴露原始 SQL 输入。
+- 新增异步任务、OpenClaw 调用、模型调用时，保留 `traceId` 透传。
+- React 页面组件聚焦展示，复杂逻辑优先抽到 hooks 或服务层。

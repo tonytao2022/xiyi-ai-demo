@@ -1,0 +1,14 @@
+---
+description: 架构文档和 AI 资产维护约定
+globs: docs/**/*.md
+alwaysApply: false
+---
+
+# 文档与架构约定
+
+- 场景说明放 `docs/architecture/01-场景/`
+- 总体设计放 `docs/architecture/02-总体设计/`
+- 实施计划放 `docs/architecture/03-实施计划/`
+- Agent、Prompt、模型路由、工具白名单等放 `docs/architecture/04-AI资产/`
+- 新增重要目录或独立资产后，同步更新导航说明和 `README.md`
+- 标题尽量保持层级清晰，需要时用编号增强可读性

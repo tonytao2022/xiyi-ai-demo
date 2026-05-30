@@ -1,0 +1,17 @@
+{
+  "name": "ce-agent-demo1",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n bff,web -c cyan,magenta \"pnpm --filter bff dev\" \"pnpm --filter web dev\"",
+    "dev:bff": "pnpm --filter bff dev",
+    "dev:openclaw-runtime": "pnpm --filter openclaw-runtime dev",
+    "dev:playbook-engine": "pnpm --filter playbook-engine dev",
+    "dev:report-service": "pnpm --filter report-service dev",
+    "dev:semantic-api": "pnpm --filter semantic-api dev",
+    "dev:services": "concurrently -n semantic,playbook,report -c green,yellow,blue \"pnpm dev:semantic-api\" \"pnpm dev:playbook-engine\" \"pnpm dev:report-service\"",
+    "dev:web": "pnpm --filter web dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

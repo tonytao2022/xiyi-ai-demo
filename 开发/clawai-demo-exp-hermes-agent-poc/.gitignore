@@ -1,0 +1,48 @@
+# dependencies
+node_modules/
+apps/*/node_modules/
+services/*/node_modules/
+packages/*/node_modules/
+plugins/*/node_modules/
+
+# build outputs
+dist/
+build/
+coverage/
+apps/*/dist/
+apps/*/build/
+apps/*/.vite/
+services/*/dist/
+packages/*/dist/
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# cursor state
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+
+# runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# misc caches
+.cache/
+tmp/
+temp/

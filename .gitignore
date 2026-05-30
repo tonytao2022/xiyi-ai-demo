@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.agent.zip
+参考材料/.agent-reference/
+品质专员平台设计/
+交付物/
+会议记录/
+api/xiyi_server_backup.py

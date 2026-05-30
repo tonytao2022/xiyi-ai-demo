@@ -1,0 +1,264 @@
+{
+  "info": {
+    "_postman_id": "8d4ce20a-5ca2-4f01-bd74-1a0ce-agent-demo1",
+    "name": "ce-agent-demo1 联调集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "semanticApiBaseUrl",
+      "value": "http://localhost:3010"
+    },
+    {
+      "key": "bffBaseUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "openclawRuntimeBaseUrl",
+      "value": "http://localhost:3040"
+    },
+    {
+      "key": "taskId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Semantic API",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{semanticApiBaseUrl}}/health",
+              "host": ["{{semanticApiBaseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "fpyr_daily",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metricKey\": \"fpyr_daily\",\n  \"dimensions\": [\"date\"],\n  \"filters\": [\n    { \"field\": \"siteId\", \"operator\": \"eq\", \"value\": \"site-A01\" },\n    { \"field\": \"stock_oper_order\", \"operator\": \"eq\", \"value\": \"ZKI\" }\n  ],\n  \"grain\": \"day\",\n  \"timeRange\": {\n    \"startAt\": \"2026-03-27T00:00:00+08:00\",\n    \"endAt\": \"2026-03-30T23:59:59+08:00\",\n    \"timezone\": \"Asia/Shanghai\"\n  },\n  \"queryReason\": \"Postman 测试一次校验合格率趋势\",\n  \"auditContext\": {\n    \"traceId\": \"trace-postman-001\",\n    \"tenantId\": \"tenant-demo\",\n    \"actorId\": \"user-001\",\n    \"skillKey\": \"quality_first_pass_yield\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{semanticApiBaseUrl}}/metrics/query",
+              "host": ["{{semanticApiBaseUrl}}"],
+              "path": ["metrics", "query"]
+            }
+          }
+        },
+        {
+          "name": "defect_item_breakdown",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metricKey\": \"defect_item_breakdown\",\n  \"dimensions\": [\"itemCategory\", \"itemName\"],\n  \"filters\": [\n    { \"field\": \"siteId\", \"operator\": \"eq\", \"value\": \"site-A01\" },\n    { \"field\": \"judgeCode\", \"operator\": \"in\", \"value\": [\"A\", \"B\", \"F\"] }\n  ],\n  \"grain\": \"day\",\n  \"timeRange\": {\n    \"startAt\": \"2026-03-27T00:00:00+08:00\",\n    \"endAt\": \"2026-03-30T23:59:59+08:00\",\n    \"timezone\": \"Asia/Shanghai\"\n  },\n  \"queryReason\": \"Postman 测试不合格项目结构\",\n  \"auditContext\": {\n    \"traceId\": \"trace-postman-002\",\n    \"tenantId\": \"tenant-demo\",\n    \"actorId\": \"user-001\",\n    \"skillKey\": \"quality_first_pass_yield\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{semanticApiBaseUrl}}/metrics/query",
+              "host": ["{{semanticApiBaseUrl}}"],
+              "path": ["metrics", "query"]
+            }
+          }
+        },
+        {
+          "name": "equipment_event_timeline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metricKey\": \"equipment_event_timeline\",\n  \"dimensions\": [\"unit\", \"eventTime\"],\n  \"filters\": [\n    { \"field\": \"unit\", \"operator\": \"eq\", \"value\": \"line-A\" }\n  ],\n  \"grain\": \"day\",\n  \"timeRange\": {\n    \"startAt\": \"2026-03-27T00:00:00+08:00\",\n    \"endAt\": \"2026-03-30T23:59:59+08:00\",\n    \"timezone\": \"Asia/Shanghai\"\n  },\n  \"queryReason\": \"Postman 测试设备事件时间线\",\n  \"auditContext\": {\n    \"traceId\": \"trace-postman-003\",\n    \"tenantId\": \"tenant-demo\",\n    \"actorId\": \"user-001\",\n    \"skillKey\": \"quality_first_pass_yield\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{semanticApiBaseUrl}}/metrics/query",
+              "host": ["{{semanticApiBaseUrl}}"],
+              "path": ["metrics", "query"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "OpenClaw Runtime",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{openclawRuntimeBaseUrl}}/health",
+              "host": ["{{openclawRuntimeBaseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "execute quality_first_pass_yield",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"traceId\": \"trace-openclaw-001\",\n  \"skillKey\": \"quality_first_pass_yield\",\n  \"analysisType\": \"first_pass_yield_monitoring\",\n  \"input\": {\n    \"analysisType\": \"first_pass_yield_monitoring\",\n    \"tenantId\": \"tenant-demo\",\n    \"orgId\": \"org-A\",\n    \"siteId\": \"site-A01\",\n    \"timeRange\": {\n      \"startAt\": \"2026-03-27\",\n      \"endAt\": \"2026-03-30\",\n      \"timezone\": \"Asia/Shanghai\"\n    },\n    \"inputParams\": {\n      \"productLine\": \"line-A\"\n    },\n    \"playbookVersion\": \"quality-fpyr-v1\",\n    \"reportTemplateVersion\": \"fpyr-demo-v1\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{openclawRuntimeBaseUrl}}/skills/quality_first_pass_yield/execute",
+              "host": ["{{openclawRuntimeBaseUrl}}"],
+              "path": ["skills", "quality_first_pass_yield", "execute"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "BFF",
+      "item": [
+        {
+          "name": "create task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.taskId) {",
+                  "  pm.collectionVariables.set('taskId', json.taskId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"analysisType\": \"first_pass_yield_monitoring\",\n  \"tenantId\": \"tenant-demo\",\n  \"orgId\": \"org-A\",\n  \"siteId\": \"site-A01\",\n  \"timeRange\": {\n    \"startAt\": \"2026-03-27\",\n    \"endAt\": \"2026-03-30\",\n    \"timezone\": \"Asia/Shanghai\"\n  },\n  \"inputParams\": {\n    \"productLine\": \"line-A\",\n    \"analysisFocus\": [\"yield_overview\", \"defect_breakdown\", \"equipment_correlation\"]\n  },\n  \"playbookVersion\": \"quality-fpyr-v1\",\n  \"reportTemplateVersion\": \"fpyr-demo-v1\"\n}"
+            },
+            "url": {
+              "raw": "{{bffBaseUrl}}/api/tasks",
+              "host": ["{{bffBaseUrl}}"],
+              "path": ["api", "tasks"]
+            }
+          }
+        },
+        {
+          "name": "get task",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{bffBaseUrl}}/api/tasks/{{taskId}}",
+              "host": ["{{bffBaseUrl}}"],
+              "path": ["api", "tasks", "{{taskId}}"]
+            }
+          }
+        },
+        {
+          "name": "get report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{bffBaseUrl}}/api/reports/{{taskId}}",
+              "host": ["{{bffBaseUrl}}"],
+              "path": ["api", "reports", "{{taskId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Playbook Engine",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3020/health",
+              "host": ["http://localhost:3020"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "execute playbook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"traceId\": \"trace-postman-playbook-001\",\n  \"analysisType\": \"first_pass_yield_monitoring\",\n  \"input\": {\n    \"siteId\": \"site-A01\"\n  },\n  \"facts\": {\n    \"fpyrDaily\": {\n      \"rows\": [\n        { \"date\": \"2026-03-27\", \"totalBatchCount\": 3, \"qualifiedBatchCount\": 2, \"defectBatchCount\": 1, \"fpyr\": 66.7 },\n        { \"date\": \"2026-03-28\", \"totalBatchCount\": 3, \"qualifiedBatchCount\": 1, \"defectBatchCount\": 2, \"fpyr\": 33.3 }\n      ]\n    },\n    \"defectBreakdown\": {\n      \"rows\": [\n        { \"itemCategory\": \"磁物类\", \"itemName\": \"磁物超标\", \"count\": 2, \"ratio\": 40 }\n      ]\n    },\n    \"equipmentTimeline\": {\n      \"rows\": [\n        { \"eventTime\": \"2026-03-28T08:20:00\", \"unit\": \"line-A\", \"eventType\": \"fault\", \"faultDesc\": \"温控异常\", \"faultGrade\": \"high\", \"repairStatus\": \"opened\" }\n      ]\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3020/playbooks/execute",
+              "host": ["http://localhost:3020"],
+              "path": ["playbooks", "execute"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Report Service",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3030/health",
+              "host": ["http://localhost:3030"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
