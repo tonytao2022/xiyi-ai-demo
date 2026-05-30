@@ -80,7 +80,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="nav-item active" onclick="switchPage('dashboard')">
         <span class="icon">🏠</span> 工作台总览
       </div>
-      <div class="nav-item" onclick="switchPage('scenes')">
+      
+      <div class="nav-item" onclick="window.location.href='/xiyi-scenes-manager.html'">
         <span class="icon">📋</span> 场景管理
       </div>
       <div class="nav-item" onclick="switchPage('analysis')">
@@ -234,7 +235,7 @@ function switchPage(page) {
   const el = document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1));
   if (el) el.style.display = '';
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const titles = {dashboard:'🏠 品质专员 · 工作台总览', scenes:'📋 场景管理', analysis:'⚙️ 分析流程', indicators:'📊 指标体系', standards:'📐 数据标准'};
+  const titles = {dashboard:'🏠 品质专员 · 工作台总览', analysis:'⚙️ 分析流程', indicators:'📊 指标体系', standards:'📐 数据标准'};
   document.getElementById('pageTitle').textContent = titles[page] || '品质专员';
   const idx = ['dashboard','scenes','analysis','indicators','standards'].indexOf(page);
   if (idx >= 0) document.querySelectorAll('.nav-item')[idx + 1].classList.add('active');
