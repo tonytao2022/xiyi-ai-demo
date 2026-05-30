@@ -129,6 +129,7 @@ function switchTab(name) {
   document.getElementById('pageTitle').textContent = titles[name] || '系统配置';
   const idx = ['scenes','indicators','standards','datasources'].indexOf(name);
   if (idx >= 0) document.querySelectorAll('.sidebar .nav-item')[idx].classList.add('active');
+  if (name === 'rules') loadRules();
 }
 
 function switchSubTab(name) {
