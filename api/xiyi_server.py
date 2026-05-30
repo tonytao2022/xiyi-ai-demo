@@ -525,12 +525,35 @@ def ai_analysis_run():
                  json.dumps(metrics_result),
                  'ok'))
 
-            # 3. 生成报告
+            # 3. 调用OpenClaw执行AI推理
+            import subprocess
+            _metrics_summary = '\n'.join([f"{k}: {v}" for k, v in metrics_result.items()])
+            _prompt = f"""你是一位制造企业品质专员助理。请分析以下品质数据：\n\n场景：{scene_name}\n指标数据：{_metrics_summary}\n\n请输出：\n1. 当前品质状况评估\n2. 异常指标识别\n3. 建议的4M1E排查方向\n4. 下一步行动计划\n\n请以结构化方式输出。"""
+            try:
+                _result = subprocess.run(
+                    ['openclaw', 'agent', '-m', _prompt, '--agent', 'main', '--json'],
+                    capture_output=True, text=True, timeout=60
+                )
+                _output = _result.stdout.strip()
+                _ai_response = ''
+                if _output:
+                    try:
+                        _json_out = json.loads(_output)
+                        _payloads = _json_out.get('result', {}).get('payloads', [])
+                        if _payloads:
+                            _ai_response = _payloads[0].get('text', '')
+                    except:
+                        _ai_response = _output[:2000]
+            except Exception as _e:
+                _ai_response = f'AI推理异常: {str(_e)}'
+            
+            # 4. 生成报告
             report = {
                 'trace_id': trace_id,
                 'scene_id': scene_id,
                 'scene_name': scene_name,
                 'metrics': metrics_result,
+                'ai_analysis': _ai_response,
                 'hit_count': 0,
                 'max_severity': 'info',
             }
