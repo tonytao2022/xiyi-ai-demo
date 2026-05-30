@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>指标详情 · 兮易AI大脑</title>
+<style>
+:root{--bg:#0a0e17;--bg2:#111827;--card:#161d2a;--border:#1e2d4a;--text:#e2e8f0;--text2:#94a3b8;--muted:#64748b;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#8b5cf6;--radius:8px;--lg:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:20px;min-height:100vh}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.header h1{font-size:20px;color:#fff}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--lg);padding:16px;margin-bottom:16px}
+.triple{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.stat{background:var(--bg2);border-radius:var(--radius);padding:14px;text-align:center}
+.stat .l{font-size:12px;color:var(--muted);margin-bottom:4px}
+.stat .v{font-size:24px;font-weight:700}
+.stat .t{font-size:11px;color:var(--muted);margin-top:2px}
+.chart{display:flex;align-items:flex-end;gap:6px;height:150px;padding:12px 0}
+.chart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.chart .bar .val{font-size:10px;color:var(--muted)}
+.chart .bar .col{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(to top, var(--blue), rgba(59,130,246,0.3))}
+.chart .bar .w{font-size:10px;color:var(--muted)}
+.dims{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dims .item{padding:6px 10px;background:var(--bg2);border-radius:var(--radius);font-size:13px;color:var(--text2)}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:var(--radius);font-size:12px;cursor:pointer;text-decoration:none;border:1px solid var(--border);color:var(--text2);background:transparent}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1 id="kpiTitle">📊 指标详情</h1>
+  </div>
+  <div>
+    <a href="/xiyi-quality-workbench.html" class="btn">← 返回工作台</a>
+  </div>
+</div>
+
+<div id="content" style="color:var(--muted);padding:20px">加载中...</div>
+
+<script>
+(function() {
+  var p = new URLSearchParams(window.location.search);
+  var name = p.get('name') || '未知指标';
+  var value = p.get('value') || '—';
+  var target = p.get('target') || '—';
+  var unit = p.get('unit') || '';
+  var level = p.get('level') || 'success';
+  var idx = parseInt(p.get('idx') || '0');
+
+  document.getElementById('kpiTitle').textContent = '📊 ' + name;
+
+  var clr = level === 'danger' ? 'var(--red)' : level === 'warning' ? 'var(--yellow)' : 'var(--green)';
+
+  // 模拟12周趋势数据
+  var weeks = ['W31','W32','W33','W34','W35','W36','W37','W38','W39','W40','W41','W42'];
+  var base = parseFloat(value) || 50;
+  var trendVals = [];
+  for (var i = 0; i < 12; i++) {
+    trendVals.push((base + (Math.random() - 0.5) * 6).toFixed(1));
+  }
+  var targetVal = parseFloat(target) || 100;
+  var bars = '';
+  for (var j = 0; j < 12; j++) {
+    var v = parseFloat(trendVals[j]);
+    var h = Math.min(100, Math.max(15, v / targetVal * 100));
+    bars += '<div class="bar"><span class="val">' + v + '</span><div class="col" style="height:' + h + 'px"></div><span class="w">' + weeks[j] + '</span></div>';
+  }
+
+  // 指标定义描述
+  var desc = name + '：衡量';
+  if (name.indexOf('FPY') >= 0) desc += '产品一次通过质量门的能力。';
+  else if (name.indexOf('磁物') >= 0) desc += '生产过程中磁性物污染水平。';
+  else if (name.indexOf('异常') >= 0) desc += '库存中异常料的管理水平。';
+  else if (name.indexOf('IQC') >= 0 || name.indexOf('来料') >= 0) desc += '来料质量控制的整体水平。';
+  else if (name.indexOf('PMP') >= 0 || name.indexOf('过程') >= 0) desc += '制造过程中各工序的一次交验质量。';
+  else if (name.indexOf('COQ') >= 0 || name.indexOf('质量成本') >= 0) desc += '质量成本在销售额中的占比。';
+  else desc += '相关业务表现。';
+  if (level === 'danger') desc += ' ⚠️ 当前值超出警戒范围，需优先关注。';
+  else if (level === 'warning') desc += ' ⚡ 当前值接近阈值，注意控制。';
+  else desc += ' ✅ 当前运行平稳。';
+
+  var html = '';
+  // 三个关键数字
+  html += '<div class="triple">';
+  html += '<div class="stat"><div class="l">当前值</div><div class="v" style="color:' + clr + '">' + value + '</div></div>';
+  html += '<div class="stat"><div class="l">目标值</div><div class="v" style="color:var(--text)">' + target + '</div></div>';
+  html += '<div class="stat"><div class="l">单位</div><div class="v" style="color:var(--muted);font-size:20px">' + (unit || '—') + '</div></div>';
+  html += '</div>';
+
+  // 指标定义
+  html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:4px">指标定义</div><div style="font-size:13px;color:var(--text2)">' + desc + '</div></div>';
+
+  // 历史趋势
+  html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">历史趋势（近12周）</div><div class="chart">' + bars + '</div></div>';
+
+  // 关联维度
+  html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">关联分解维度</div><div class="dims"><div class="item">📂 产线维度</div><div class="item">📂 班次维度</div><div class="item">📂 物料维度</div><div class="item">📂 设备维度</div></div></div>';
+
+  document.getElementById('content').innerHTML = html;
+})();
+</script>
+</body>
+</html>
