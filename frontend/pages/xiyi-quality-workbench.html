@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>品质专员 · 兮易AI大脑</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{--bg-primary:#0a0e17;--bg-secondary:#111827;--bg-card:#161d2a;--bg-card-hover:#1c2538;--bg-input:#1a2235;--border-color:#1e2d4a;--border-light:#253a5e;--text-primary:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--text-bright:#fff;--color-bull:#ef4444;--color-bear:#22c55e;--color-buy:#f59e0b;--color-hold:#3b82f6;--color-safety:#8b5cf6;--color-quality:#10b981;--color-defect:#ef4444;--color-warning:#f59e0b;--color-inspect:#3b82f6;--color-cost:#f97316;--radius:8px;--radius-lg:12px;--shadow-card:0 1px 3px rgba(0,0,0,0.4)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg-primary);color:var(--text-primary);line-height:1.5;min-height:100vh}
+.app-layout{display:flex;min-height:100vh}
+.sidebar{width:220px;min-width:220px;background:var(--bg-secondary);border-right:1px solid var(--border-color);position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+.sidebar-logo{padding:20px;border-bottom:1px solid var(--border-color)}
+.sidebar-logo .title{font-size:14px;font-weight:700;color:var(--text-bright)}
+.sidebar-logo .sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+.sidebar-nav{padding:12px 0}
+.nav-item{display:flex;align-items:center;padding:10px 20px;color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:var(--bg-card);color:var(--text-primary)}
+.nav-item.active{background:rgba(59,130,246,0.1);color:var(--color-hold);border-left-color:var(--color-hold)}
+.nav-item .icon{margin-right:10px;width:18px;text-align:center}
+.nav-section{padding:8px 20px 4px;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.main-content{flex:1;margin-left:220px;padding:24px 28px}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.header h1{font-size:20px;font-weight:700;color:var(--text-bright)}
+.header .badge{font-size:11px;padding:4px 12px;border-radius:12px;background:rgba(59,130,246,0.12);color:var(--color-hold)}
+.card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border-color);font-weight:600;font-size:14px;color:var(--text-bright);display:flex;justify-content:space-between;align-items:center}
+.card-body{padding:16px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:16px;transition:all .2s}
+.kpi-card:hover{border-color:var(--color-hold);transform:translateY(-2px)}
+.kpi-card .kpi-label{font-size:11px;color:var(--text-muted);margin-bottom:6px}
+.kpi-card .kpi-value{font-size:24px;font-weight:700;letter-spacing:-0.5px}
+.kpi-card .kpi-target{font-size:11px;color:var(--text-secondary);margin-top:4px}
+.kpi-card .kpi-threshold{font-size:10px;color:var(--text-muted);margin-top:2px}
+.scene-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-bottom:24px}
+.scene-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:all .2s}
+.scene-card:hover{border-color:var(--color-hold);background:var(--bg-card-hover)}
+.scene-card .cat{font-size:10px;color:var(--color-hold);margin-bottom:4px}
+.scene-card .scene-name{font-size:13px;font-weight:600;color:var(--text-bright);margin-bottom:6px;line-height:1.4}
+.scene-card .scene-desc{font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:8px}
+.scene-card .step-badge{display:inline-flex;gap:4px}
+.scene-card .step-badge span{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(59,130,246,0.1);color:var(--color-hold);border:1px solid rgba(59,130,246,0.2)}
+.step-flow{display:flex;gap:6px;flex-wrap:wrap}
+.step-flow .step-item{font-size:11px;padding:4px 10px;border-radius:6px;background:rgba(59,130,246,0.08);color:var(--text-secondary);border:1px solid rgba(59,130,246,0.15)}
+.step-flow .step-item.active{background:rgba(34,197,94,0.1);border-color:var(--color-bear);color:var(--color-bear)}
+.step-flow .step-item.done{background:rgba(59,130,246,0.15);border-color:var(--color-hold);color:var(--color-hold)}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.form-group{margin-bottom:12px}
+.form-group label{font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px}
+.form-control{width:100%;padding:8px 12px;background:var(--bg-input);border:1px solid var(--border-color);border-radius:var(--radius);color:var(--text-primary);font-size:13px;outline:none}
+.form-control:focus{border-color:var(--color-hold)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 20px;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--color-hold);color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;border:1px solid var(--border-color);color:var(--text-secondary)}
+.btn-outline:hover{border-color:var(--color-hold);color:var(--color-hold)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.text-muted{color:var(--text-muted)}
+.text-success{color:var(--color-bear)}
+.text-danger{color:var(--color-bull)}
+.stat-box{text-align:center;padding:12px;background:var(--bg-secondary);border-radius:var(--radius)}
+.stat-box .num{font-size:20px;font-weight:700;color:var(--text-bright)}
+.stat-box .lbl{font-size:11px;color:var(--text-muted);margin-top:2px}
+@media(max-width:768px){.sidebar{display:none}.main-content{margin-left:0;padding:16px}.grid-2{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="title">🏭 兮易AI大脑</div>
+      <div class="sub">品质专员 · 数据驱动</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">导航菜单</div>
+      <div class="nav-item active" onclick="switchPage('dashboard')">
+        <span class="icon">🏠</span> 工作台总览
+      </div>
+      <div class="nav-item" onclick="switchPage('scenes')">
+        <span class="icon">📋</span> 场景管理
+      </div>
+      <div class="nav-item" onclick="switchPage('analysis')">
+        <span class="icon">⚙️</span> 分析流程
+      </div>
+      <div class="nav-item" onclick="switchPage('indicators')">
+        <span class="icon">📊</span> 指标体系
+      </div>
+      <div class="nav-item" onclick="switchPage('standards')">
+        <span class="icon">📐</span> 数据标准
+      </div>
+      <div style="border-top:1px solid var(--border-color);margin:12px 20px 0;"></div>
+      <div class="nav-item" onclick="window.open('/stock-manager/index.html','_self')" style="font-size:12px">
+        <span class="icon">↩</span> 返回股票系统
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="header">
+      <div>
+        <h1 id="pageTitle">🏠 品质专员 · 工作台总览</h1>
+        <div class="badge" id="apiBadge">检查连接中...</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="loadAll()">🔄 刷新数据</button>
+      </div>
+    </div>
+
+    <!-- 总览页 -->
+    <div id="pageDashboard">
+      <div class="kpi-grid" id="kpiGrid"><div style="color:var(--text-muted);padding:20px">加载KPI数据...</div></div>
+
+      <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span class="text-muted" style="font-size:13px;font-weight:600">📋 7个工作场景</span>
+        <button class="btn btn-outline" style="padding:4px 12px;font-size:11px" onclick="switchPage('scenes')">查看全部 →</button>
+      </div>
+      <div class="scene-grid" id="sceneGrid"><div style="color:var(--text-muted);padding:20px">加载场景数据...</div></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">⚙️ 七步分析流程（场景1示例）</div>
+          <div class="card-body">
+            <div class="step-flow" id="stepFlow"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">🚀 启动新分析</div>
+          <div class="card-body">
+            <div class="form-group">
+              <label>选择场景</label>
+              <select class="form-control" id="sceneSelect"></select>
+            </div>
+            <div class="form-group">
+              <label>分析标题</label>
+              <input class="form-control" id="analysisTitle" placeholder="FPY异常诊断...">
+            </div>
+            <button class="btn btn-primary" onclick="startAnalysis()" style="width:100%">🚀 启动分析</button>
+            <div id="analysisResult" class="text-muted" style="margin-top:10px;font-size:12px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 场景管理页 -->
+    <div id="pageScenes" style="display:none">
+      <div class="scene-grid" id="sceneGridFull" style="grid-template-columns:repeat(auto-fill,minmax(330px,1fr))"></div>
+    </div>
+
+    <!-- 分析流程页 -->
+    <div id="pageAnalysis" style="display:none">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">📋 分析实例列表</div>
+          <div class="card-body" id="analysisList" style="font-size:13px;color:var(--text-muted)">暂无可展示的分析实例</div>
+        </div>
+        <div class="card">
+          <div class="card-header">🔍 七步流程状态</div>
+          <div class="card-body" id="analysisStepStatus">
+            <div class="step-flow" id="stepFlowDetail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 指标体系页 -->
+    <div id="pageIndicators" style="display:none">
+      <div class="card">
+        <div class="card-header">📊 核心KPI指标</div>
+        <div class="card-body">
+          <div class="kpi-grid" id="indicatorFullList" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据标准页 -->
+    <div id="pageStandards" style="display:none">
+      <div class="card">
+        <div class="card-header">📐 标准数据字段</div>
+        <div class="card-body">
+          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr><th style="padding:8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);font-size:12px">标准编码</th><th style="padding:8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);font-size:12px">标准名称</th><th style="padding:8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);font-size:12px">数据类型</th><th style="padding:8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);font-size:12px">说明</th></tr></thead>
+            <tbody id="stdTableBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = '/api/v1/xiyi';
+
+// ─── 页面切换 ───
+function switchPage(page) {
+  document.querySelectorAll('.main-content > [id^=page]').forEach(el => el.style.display = 'none');
+  const el = document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1));
+  if (el) el.style.display = '';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const titles = {dashboard:'🏠 品质专员 · 工作台总览', scenes:'📋 场景管理', analysis:'⚙️ 分析流程', indicators:'📊 指标体系', standards:'📐 数据标准'};
+  document.getElementById('pageTitle').textContent = titles[page] || '品质专员';
+  const idx = ['dashboard','scenes','analysis','indicators','standards'].indexOf(page);
+  if (idx >= 0) document.querySelectorAll('.nav-item')[idx + 1].classList.add('active');
+}
+
+// ─── 颜色工具 ───
+function kpiColor(ind) {
+  const level = ind.alert_level || 'info';
+  if (level === 'danger') return 'var(--color-defect)';
+  if (level === 'warning') return 'var(--color-warning)';
+  return 'var(--color-bear)';
+}
+
+function thresholdStr(ind) {
+  if (ind.threshold_upper && ind.threshold_lower) return `阈值: ${ind.threshold_lower} ~ ${ind.threshold_upper}${ind.unit||''}`;
+  if (ind.threshold_upper) return `上限: ${ind.threshold_upper}${ind.unit||''}`;
+  if (ind.threshold_lower) return `下限: ${ind.threshold_lower}${ind.unit||''}`;
+  return '';
+}
+
+// ─── 加载所有数据 ───
+async function loadAll() {
+  const badge = document.getElementById('apiBadge');
+  badge.textContent = '🔄 连接中...';
+  try {
+    // 1. 指标
+    const ir = await fetch(`${API}/indicators`).then(r=>r.json());
+    // 实时KPI（从模拟数据计算）
+    const kpiR = await fetch(`${API}/mock/kpi`).then(r=>r.json());
+    if (kpiR.code === 0) {
+      const rkpis = kpiR.data.kpis || [];
+      if (rkpis.length > 0) {
+        document.getElementById("kpiGrid").innerHTML = rkpis.map(k => `
+          <div class="kpi-card">
+            <div class="kpi-label">${k.name}</div>
+            <div class="kpi-value" style="color:var(--${k.level==="danger"?"color-defect":k.level==="warning"?"color-warning":"color-bear"})">${k.value}<span style="font-size:13px;color:var(--text-muted)"> ${k.unit||""}</span></div>
+            <div class="kpi-target">目标: ${k.target}</div>
+          </div>
+        `).join("");
+      }
+    }
+    if (ir.code === 0) {
+      const inds = ir.data.indicators || [];
+      const html = inds.map(ind => `
+        <div class="kpi-card">
+          <div class="kpi-label">${ind.indicator_name}</div>
+          <div class="kpi-value" style="color:${kpiColor(ind)}">${ind.threshold_lower || '—'}<span style="font-size:13px;color:var(--text-muted)"> ${ind.unit||''}</span></div>
+          <div class="kpi-target">类别: ${ind.category_name || '—'}</div>
+          <div class="kpi-threshold">${thresholdStr(ind)}</div>
+        </div>
+      `).join('');
+      document.getElementById('kpiGrid').innerHTML = html;
+      document.getElementById('indicatorFullList').innerHTML = html;
+    }
+
+    // 2. 场景
+    const sr = await fetch(`${API}/scenes`).then(r=>r.json());
+    if (sr.code === 0) {
+      const scenes = sr.data.scenes || [];
+      const cardHtml = scenes.map(s => `
+        <div class="scene-card" onclick="showSceneDetail('${s.id}','${s.scene_name}')">
+          <div class="cat">${s.category||'品质监控'}</div>
+          <div class="scene-name">${s.scene_name}</div>
+          <div class="scene-desc">${(s.description||'').length>80 ? (s.description||'').slice(0,80)+'...' : s.description||''}</div>
+          <div class="step-badge"><span>${s.step_count||7}步</span></div>
+        </div>
+      `).join('');
+      document.getElementById('sceneGrid').innerHTML = cardHtml;
+      document.getElementById('sceneGridFull').innerHTML = cardHtml;
+
+      const sel = document.getElementById('sceneSelect');
+      sel.innerHTML = scenes.map(s => `<option value="${s.id}">${s.scene_name}</option>`).join('');
+    }
+
+    // 3. 场景1步骤
+    const stepR = await fetch(`${API}/scenes/1`).then(r=>r.json());
+    if (stepR.code === 0) {
+      const steps = stepR.data.steps || [];
+      const stepHtml = steps.map((s,i) => `<span class="step-item ${i===0?'active':''}">${s.sort_order}. ${s.step_name}</span>`).join('');
+      document.getElementById('stepFlow').innerHTML = stepHtml;
+      document.getElementById('stepFlowDetail').innerHTML = stepHtml;
+    }
+
+    // 4. 标准字段
+    const stdR = await fetch(`${API}/standards`).then(r=>r.json());
+    if (stdR.code === 0) {
+      const cols = stdR.data.standards || [];
+      document.getElementById('stdTableBody').innerHTML = cols.map(c => `
+        <tr><td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.std_code}</td>
+        <td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.std_name}</td>
+        <td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.data_type}</td>
+        <td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.description||'—'}</td></tr>
+      `).join('');
+    }
+
+    badge.textContent = '✅ 已连接 8890·xiyi_quality';
+  } catch(e) {
+    badge.textContent = '❌ 连接失败: ' + e.message;
+    console.error(e);
+  }
+}
+
+// ─── 启动分析 ───
+async function startAnalysis() {
+  const sceneId = document.getElementById('sceneSelect').value;
+  const title = document.getElementById('analysisTitle').value || '品质分析';
+  const res = document.getElementById('analysisResult');
+  res.textContent = '⏳ 启动中...';
+  try {
+    const r = await fetch(`${API}/analysis/start`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({scene_id: parseInt(sceneId), title})
+    }).then(r=>r.json());
+    if (r.code === 0) {
+      const d = r.data;
+      res.innerHTML = `✅ 已启动<br>实例ID: ${d.instance_id}<br>编码: ${d.instance_code}<br>7步跟踪已创建`;
+    } else {
+      res.textContent = '❌ ' + (r.error || '启动失败');
+    }
+  } catch(e) {
+    res.textContent = '❌ ' + e.message;
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
+<style>
+/* ===== 场景详情弹窗 ===== */
+.scene-detail-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.scene-detail-panel{background:var(--bg-primary);border:1px solid var(--border-color);border-radius:var(--radius-lg);width:90%;max-width:1000px;max-height:88vh;overflow-y:auto;padding:0}
+.scene-detail-panel .panel-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);position:sticky;top:0;background:var(--bg-primary);z-index:10}
+.scene-detail-panel .panel-header h2{font-size:16px;color:var(--text-bright)}
+.scene-detail-panel .panel-header .close-btn{background:transparent;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:4px 8px}
+.scene-detail-panel .panel-header .close-btn:hover{color:var(--text-primary)}
+.scene-detail-panel .panel-body{padding:20px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.detail-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius);padding:14px}
+.detail-card h3{font-size:13px;color:var(--text-bright);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.detail-card .item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-light);font-size:12px;color:var(--text-secondary)}
+.detail-card .item:last-child{border-bottom:none}
+.detail-card .item .key{color:var(--text-muted)}
+.detail-card .item .val{color:var(--text-primary);font-weight:500}
+.detail-card .factor{display:flex;gap:8px;padding:6px 8px;margin:4px 0;border-radius:var(--radius);font-size:12px;background:var(--bg-secondary)}
+.detail-card .factor .tag{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600}
+.tag-red{background:rgba(239,68,68,0.15);color:#ef4444}
+.tag-yellow{background:rgba(245,158,11,0.15);color:#f59e0b}
+.tag-green{background:rgba(34,197,94,0.15);color:#22c55e}
+.tag-blue{background:rgba(59,130,246,0.15);color:#3b82f6}
+.mock-preview-table{width:100%;border-collapse:collapse;font-size:12px}
+.mock-preview-table th{padding:6px 8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);font-size:11px;text-align:left}
+.mock-preview-table td{padding:5px 8px;border-bottom:1px solid var(--border-light);color:var(--text-secondary)}
+.mock-preview-table tr:hover td{background:var(--bg-card-hover)}
+@media(max-width:768px){.detail-grid{grid-template-columns:1fr}}
+</style>
+<script>
+// ═══ 场景详情弹窗 ═══
+async function showSceneDetail(sceneId, sceneName) {
+  let panel = document.getElementById('sceneDetailPanel');
+  if (panel) panel.remove();
+
+  // 加载场景详情
+  const [sceneR, mockR] = await Promise.all([
+    fetch(`${API}/scenes/${sceneId}`).then(r=>r.json()),
+    fetch(`${API}/mock/${sceneId}?limit=5`).then(r=>r.json())
+  ]);
+  const scene = sceneR.data?.scene || {};
+  const steps = sceneR.data?.steps || [];
+  const mockRows = mockR.data?.rows || [];
+
+  const indicators = [
+    {code:'FPY_RATE',name:'在线一次交验合格率',threshold:'97-99%',scene:1},
+    {code:'MAG_ABNORM',name:'磁物检验异常率',threshold:'0%',scene:2},
+    {code:'ABN_STOCK',name:'异常料库存占比',threshold:'<0.5%',scene:3},
+    {code:'DEAD_STOCK',name:'呆滞库存占比',threshold:'<3.0%',scene:4},
+    {code:'IQC_RATE',name:'来料检验合格率',threshold:'≥95%',scene:5},
+    {code:'PMP_FPY',name:'过程一次合格率',threshold:'≥95%',scene:6},
+    {code:'COQ_RATE',name:'质量成本率',threshold:'≤1.8%',scene:7},
+  ];
+  const sceneInds = indicators.filter(i => i.scene === sceneId);
+
+  // 4M1E因素（根据场景显示不同配置）
+  const _4m1eData = {
+    1:[{type:'man',name:'操作人员技能',risk:'medium'},{type:'machine',name:'设备精度',risk:'high'},{type:'material',name:'正极材料批次',risk:'high'},{type:'method',name:'工艺参数',risk:'medium'}],
+    2:[{type:'machine',name:'烧结炉温度控制',risk:'high'},{type:'environment',name:'环境温湿度',risk:'medium'},{type:'material',name:'原料磁性物含量',risk:'medium'}],
+    3:[{type:'measure',name:'检测频次',risk:'medium'},{type:'man',name:'操作规范性',risk:'medium'}],
+    5:[{type:'material',name:'供应商来料质量',risk:'high'},{type:'method',name:'检验标准',risk:'medium'}],
+    6:[{type:'machine',name:'设备稳定性',risk:'high'},{type:'method',name:'工艺参数一致性',risk:'medium'},{type:'man',name:'操作技能',risk:'medium'}],
+    7:[{type:'method',name:'成本核算口径',risk:'low'},{type:'measure',name:'归集准确性',risk:'medium'}],
+  };
+  const factors = _4m1eData[sceneId] || [{type:'man',name:'人员因素',risk:'medium'},{type:'machine',name:'设备因素',risk:'medium'}];
+
+  // 构建弹窗HTML
+  panel = document.createElement('div');
+  panel.id = 'sceneDetailPanel';
+  panel.className = 'scene-detail-overlay';
+  panel.onclick = function(e) { if (e.target === this) this.remove(); };
+
+  panel.innerHTML = `<div class="scene-detail-panel">
+    <div class="panel-header">
+      <h2>📋 ${scene.scene_name || sceneName}</h2>
+      <button class="close-btn" onclick="document.getElementById('sceneDetailPanel').remove()">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="detail-grid">
+
+        <!-- 七步流程 -->
+        <div class="detail-card">
+          <h3>⚙️ 七步分析流程</h3>
+          ${steps.map((s,i) => `<div class="item">
+            <span class="key">${s.sort_order}. ${s.step_name}</span>
+            <span class="val" style="font-size:10px;color:var(--text-muted)">${s.step_type}</span>
+          </div>`).join('')}
+        </div>
+
+        <!-- 4M1E分析 -->
+        <div class="detail-card">
+          <h3>🔍 4M1E关联因素</h3>
+          ${factors.map(f => `<div class="factor">
+            <span class="tag ${f.risk==='high'?'tag-red':f.risk==='medium'?'tag-yellow':'tag-green'}">${f.risk.toUpperCase()}</span>
+            <span class="tag-blue" style="padding:1px 6px;border-radius:4px;font-size:10px">${f.type.toUpperCase()}</span>
+            <span style="flex:1">${f.name}</span>
+          </div>`).join('')}
+        </div>
+
+        <!-- 关联指标 -->
+        <div class="detail-card">
+          <h3>📊 关联指标</h3>
+          ${sceneInds.length ? sceneInds.map(ind => `<div class="item">
+            <span class="key">${ind.name}</span>
+            <span class="val">${ind.threshold}</span>
+          </div>`).join('') : '<div class="item"><span class="key" style="color:var(--text-muted)">指标配置待补充</span></div>'}
+        </div>
+
+        <!-- 告警信息 -->
+        <div class="detail-card">
+          <h3>⚠️ 当前告警</h3>
+          ${sceneId === 1 ? '<div class="item"><span class="key">FPY低于警戒线</span><span class="val" style="color:var(--color-warning)">W40批次异常</span></div>' : ''}
+          ${sceneId === 2 ? '<div class="item"><span class="key">磁物异常上升15%</span><span class="val" style="color:var(--color-warning)">2#烧结炉</span></div>' : ''}
+          ${sceneId === 5 ? '<div class="item"><span class="key">来料不合格率上升</span><span class="val" style="color:var(--color-warning)">供应商B异常</span></div>' : ''}
+          <div class="item"><span class="key">关联数据源</span><span class="val" style="font-size:11px;color:var(--text-muted)">MES/LIMS/ERP</span></div>
+          <div class="item"><span class="key">状态</span><span class="val" style="color:var(--color-bear)">${scene.step_count || 7}步配置完成</span></div>
+        </div>
+
+      </div>
+
+      <!-- 模拟数据预览 -->
+      <div class="detail-card" style="margin-top:16px">
+        <h3>📝 数据预览（最新5条）</h3>
+        ${mockRows.length ? `<div style="overflow-x:auto">
+          <table class="mock-preview-table">
+            <thead><tr>${Object.keys(mockRows[0].data || mockRows[0]).slice(0,6).map(k => `<th>${k}</th>`).join('')}</tr></thead>
+            <tbody>${mockRows.slice(0,5).map(r => {
+              const d = r.data || r;
+              const keys = Object.keys(d).slice(0,6);
+              return `<tr>${keys.map(k => `<td>${typeof d[k]==='object'?JSON.stringify(d[k]).slice(0,30):d[k]}</td>`).join('')}</tr>`;
+            }).join('')}</tbody>
+          </table>
+        </div>` : '<div style="font-size:12px;color:var(--text-muted);padding:8px">暂无模拟数据</div>'}
+      </div>
+    </div>
+  </div>`;
+
+  document.body.appendChild(panel);
+}
+
+// 修改showSceneDetail函数的调用
+// 直接用 onclick 中绑定了
+</script>
