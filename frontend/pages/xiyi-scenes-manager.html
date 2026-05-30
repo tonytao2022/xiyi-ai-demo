@@ -123,8 +123,7 @@ function filterScenes(cat, btn) {
 }
 
 function showSceneDetail(id) {
-  // 直接在当前工作台打开场景详情（通过工作台的URL参数）
-  window.location.href = '/xiyi-quality-workbench.html?scene=' + id;
+  window.open('/xiyi-diagnose.html?scene=' + id, 'sceneDetail', 'width=900,height=700');
 }
 
 loadSceneList();
