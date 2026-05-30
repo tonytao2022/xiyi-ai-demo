@@ -257,8 +257,9 @@ function thresholdStr(ind) {
 
 // ------ 加载所有数据 ------
 async function loadAll() {
-  const badge = document.getElementById('apiBadge');
-  badge.textContent = '连接中...';
+  try {
+    const badge = document.getElementById('apiBadge');
+    badge.textContent = '连接中...';
   const _now = new Date();
   const _days = ['日','一','二','三','四','五','六'];
   document.getElementById('welcomeMsg').textContent = '欢迎回来，品质专家！今天是' + _now.getFullYear() + '年' + (_now.getMonth()+1) + '月' + _now.getDate() + '日星期' + _days[_now.getDay()] + '。这是为您整合的核心指标与工作场景。';
@@ -291,6 +292,7 @@ async function loadAll() {
   } catch(e) {
     badge.textContent = '\u274C ' + e.message;
   }
+}
 
 </script>
 
@@ -310,11 +312,6 @@ function showKpiDetail(idx) {
 // 诊断根因弹窗（复用场景详情）
 function showDiagnose(idx) {
   window.location.href = '/xiyi-diagnose.html?scene=1';
-}('/api/v1/xiyi/scenes/1').then(r=>r.json());
-    
-      showSceneDetail(1, r.data.scene.scene_name || '在线一次交验合格率管控');
-    }
-  } catch(e) {}
 }
 </script>
 
