@@ -62,6 +62,7 @@ select.form-control{cursor:pointer}
     <div class="nav-item active" onclick="switchTab('scenes')">📋 场景配置</div>
     <div class="nav-item" onclick="switchTab('indicators')">📊 指标管理</div>
     <div class="nav-item" onclick="switchTab('standards')">📐 数据标准</div>
+    <div class="nav-item" onclick="switchTab('rules')">⚙️ 规则管理</div>
     <div class="nav-item" onclick="switchTab('datasources')">🔗 数据源</div>
     <div style="border-top:1px solid var(--border);margin:8px 12px 0;"></div>
     <a class="nav-item" href="/xiyi-quality-workbench.html" style="font-size:12px;cursor:pointer;text-decoration:none;display:flex">
@@ -124,7 +125,7 @@ function switchTab(name) {
   const el = document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1));
   if (el) el.style.display = '';
   document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
-  const titles = {scenes:'📋 场景配置管理', indicators:'📊 指标管理', standards:'📐 数据标准管理', datasources:'🔗 数据源管理'};
+  const titles = {scenes:'📋 场景配置管理', indicators:'📊 指标管理', standards:'📐 数据标准管理', rules:'⚙️ 规则管理', datasources:'🔗 数据源管理'};
   document.getElementById('pageTitle').textContent = titles[name] || '系统配置';
   const idx = ['scenes','indicators','standards','datasources'].indexOf(name);
   if (idx >= 0) document.querySelectorAll('.sidebar .nav-item')[idx].classList.add('active');
@@ -456,4 +457,76 @@ loadIndicators = async function() {
     });
   }, 200);
 };
+</script>
+<div id="tabRules" style="display:none"></div>
+<script>
+// ═══ 规则管理 ═══
+async function loadRules() {
+  try {
+    const r = await fetch(`${API}/rules`).then(r=>r.json());
+    if (r.code !== 0) return;
+    const rules = r.data.rules || [];
+    document.getElementById('tabRules').innerHTML = `<div class="card"><div class="card-h">⚙️ 规则管理 <span style="font-size:11px;color:var(--muted);font-weight:400">共${rules.length}条规则</span></div>
+      <div class="card-b"><table><thead><tr><th>ID</th><th>场景</th><th>规则名称</th><th>类型</th><th>优先级</th><th>状态</th><th>操作</th></tr></thead><tbody>
+      ${rules.map(r => `<tr>
+        <td style="color:var(--blue)">${r.id}</td>
+        <td>${r.scene_name||'—'}</td>
+        <td>${r.rule_name}</td>
+        <td><span class="tag tag-${r.rule_type==='threshold'?'blue':r.rule_type==='judgment_tree'?'yellow':'green'}">${r.rule_type}</span></td>
+        <td>${r.priority}</td>
+        <td><span class="tag ${r.enabled?'tag-green':'tag-yellow'}">${r.enabled?'✅ 启用':'❌ 禁用'}</span></td>
+        <td><button class="btn btn-outline btn-sm" onclick="editRule(${r.id})">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteRule(${r.id})">🗑️</button></td>
+      </tr>`).join('')}
+      </tbody></table></div></div>`;
+  } catch(e) { document.getElementById('tabRules').innerHTML = '<div class="empty">加载失败: '+e.message+'</div>'; }
+}
+
+function editRule(id) {
+  fetch(`${API}/rules`).then(r=>r.json()).then(d => {
+    const rule = (d.data.rules||[]).find(r => r.id === id);
+    if (!rule) return;
+    const expr = typeof rule.rule_expr === 'string' ? rule.rule_expr : JSON.stringify(rule.rule_expr, null, 2);
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+    overlay.innerHTML = `<div class="modal"><div class="modal-h">📝 编辑规则 — ${rule.rule_name}</div>
+      <div class="modal-b">
+        <div class="form-group"><label>规则名称</label><input class="form-control" id="er_name" value="${rule.rule_name}"></div>
+        <div class="form-group"><label>优先级</label><input class="form-control" id="er_pri" type="number" value="${rule.priority}"></div>
+        <div class="form-group"><label>状态</label><select class="form-control" id="er_enabled"><option ${rule.enabled?'selected':''} value="1">启用</option><option ${!rule.enabled?'selected':''} value="0">禁用</option></select></div>
+        <div class="form-group"><label>规则表达式(JSON)</label><textarea class="form-control" id="er_expr" rows="6">${expr}</textarea></div>
+      </div>
+      <div class="modal-f">
+        <button class="btn btn-outline" onclick="this.closest('.modal-overlay').remove()">取消</button>
+        <button class="btn btn-primary" onclick="saveRule(${id})">💾 保存</button>
+      </div></div>`;
+    document.body.appendChild(overlay);
+  });
+}
+
+async function saveRule(id) {
+  const name = document.getElementById('er_name').value;
+  const pri = parseInt(document.getElementById('er_pri').value) || 0;
+  const enabled = parseInt(document.getElementById('er_enabled').value);
+  let expr;
+  try { expr = JSON.parse(document.getElementById('er_expr').value); } catch(e) { alert('JSON格式错误'); return; }
+  const r = await fetch(`${API}/rules/${id}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({rule_name:name, priority:pri, enabled:enabled, rule_expr:expr})
+  }).then(r=>r.json());
+  if (r.code === 0) { document.querySelector('.modal-overlay')?.remove(); loadRules(); }
+  else alert('❌ '+(r.error||''));
+}
+
+async function deleteRule(id) {
+  if (!confirm('确认删除这条规则？')) return;
+  const r = await fetch(`${API}/rules/${id}`, {method:'DELETE'}).then(r=>r.json());
+  if (r.code === 0) loadRules();
+  else alert('❌ '+(r.error||''));
+}
+
+// 劫持loadAll加载规则
+const _origLoadAll = loadAll;
+loadAll = function() { _origLoadAll(); loadRules(); };
 </script>

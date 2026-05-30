@@ -589,6 +589,58 @@ def get_trace(trace_id):
         import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 
+
+@app.route('/api/v1/xiyi/rules', methods=['GET'])
+def list_rules():
+    """获取所有规则"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT r.*, s.scene_name FROM ag_rule_config r LEFT JOIN ap_scene_config s ON r.scene_id=s.id ORDER BY r.scene_id, r.priority")
+            return api_success({'rules': [dict(r) for r in cur.fetchall()]})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/rules/<int:rule_id>', methods=['PUT'])
+def update_rule(rule_id):
+    """更新规则"""
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            sets = []; params = []
+            for f in ['rule_name','rule_type','rule_expr','priority','enabled']:
+                if f in data:
+                    if isinstance(data[f], dict):
+                        sets.append(f + "=%s"); params.append(json.dumps(data[f]))
+                    else:
+                        sets.append(f + "=%s"); params.append(data[f])
+            if sets:
+                params.append(rule_id)
+                cur.execute("UPDATE ag_rule_config SET " + ",".join(sets) + " WHERE id=%s", params)
+            return api_success({'message':'更新成功'})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/rules', methods=['POST'])
+def create_rule():
+    """新建规则"""
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            cur.execute("INSERT INTO ag_rule_config (rule_code,scene_id,rule_name,rule_type,rule_expr,priority) VALUES (%s,%s,%s,%s,%s,%s)",
+                (data['rule_code'], data['scene_id'], data.get('rule_name',''), data.get('rule_type','threshold'), json.dumps(data.get('rule_expr',{})), data.get('priority',0)))
+            return api_success({'rule_id':cur.lastrowid,'message':'创建成功'})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/rules/<int:rule_id>', methods=['DELETE'])
+def delete_rule(rule_id):
+    """删除规则"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("DELETE FROM ag_rule_config WHERE id=%s", (rule_id,))
+            return api_success({'message':'已删除'})
+    except Exception as e:
+        return api_error(e)
 if __name__ == '__main__':
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
