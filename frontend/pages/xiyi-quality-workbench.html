@@ -268,9 +268,9 @@ async function loadAll() {
     if (kpiR.code === 0) {
       const rkpis = kpiR.data.kpis || [];
       if (rkpis.length > 0) {
-        document.getElementById('realtimeKpiGrid').innerHTML = rkpis.map(k => {
+        document.getElementById('realtimeKpiGrid').innerHTML = rkpis.map((k, idx) => {
           const c = k.level === 'danger' ? 'color-defect' : k.level === 'warning' ? 'color-warning' : 'color-bear';
-          return '<div class="kpi-card"><div class="kpi-label">' + k.name + '</div><div class="kpi-value" style="color:var(--' + c + ')">' + k.value + '<span style="font-size:13px;color:var(--text-muted)"> ' + (k.unit||'') + '</span></div><div class="kpi-target">目标: ' + k.target + '</div></div>';
+          return '<div class="kpi-card"><div class="kpi-label">' + k.name + '</div><div class="kpi-value" style="color:var(--' + c + ')">' + k.value + '<span style="font-size:13px;color:var(--text-muted)"> ' + (k.unit||'') + '</span></div><div class="kpi-target">目标: ' + k.target + '</div><div style="display:flex;gap:4px;margin-top:6px"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showKpiDetail(' + idx + ')" style="font-size:10px;padding:2px 6px">指标详情</button><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showDiagnose(' + idx + ')" style="font-size:10px;padding:2px 6px;color:var(--color-warning);border-color:var(--color-warning)">诊断根因</button></div></div>';
         }).join('');
       }
     }
@@ -293,6 +293,91 @@ async function loadAll() {
 }
 
 loadAll();
+
+<script>
+// 从mock/kpi加载KPI列表供详情弹窗使用
+let _kpiDetailList = [];
+
+// 指标详情弹窗
+function showKpiDetail(idx) {
+  if (!_kpiDetailList.length) return;
+  const k = _kpiDetailList[idx];
+  if (!k) return;
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'scene-detail-overlay';
+  overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+  
+  // 模拟12周趋势数据
+  const weeks = ['W31','W32','W33','W34','W35','W36','W37','W38','W39','W40','W41','W42'];
+  const trendVals = [];
+  let base = parseFloat(k.value) || 50;
+  for (let i = 0; i < 12; i++) {
+    trendVals.push((base + (Math.random() - 0.5) * 6).toFixed(1));
+  }
+  
+  overlay.innerHTML = `<div class="scene-detail-panel" style="max-width:700px">
+    <div class="panel-header">
+      <h2>📊 ${k.name}</h2>
+      <button class="close-btn" onclick="document.getElementById('aiOverlay')?.remove();this.closest('.scene-detail-overlay').remove()">✕</button>
+    </div>
+    <div class="panel-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted)">当前值</div>
+          <div style="font-size:22px;font-weight:700;color:${k.level==='danger'?'var(--color-defect)':k.level==='warning'?'var(--color-warning)':'var(--color-bear)'}">${k.value}</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted)">目标值</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text-bright)">${k.target}</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted)">环比变化</div>
+          <div style="font-size:22px;font-weight:700;color:${k.level==='danger'?'var(--color-defect)':'var(--color-bear)'}">—</div>
+        </div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">指标定义</div>
+        <div style="font-size:13px;color:var(--text2)">${k.name}：衡量${k.name.includes('FPY')?'产品一次通过质量门的能力':k.name.includes('磁物')?'生产过程中磁性物污染水平':k.name.includes('异常')?'库存中异常料的管理水平':'相关业务表现'}。${k.level==='danger'?'⚠️ 当前值超出警戒范围，需优先关注。':k.level==='warning'?'⚡ 当前值接近阈值，注意控制。':'✅ 当前运行平稳。'}</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">历史趋势（近12周模拟）</div>
+        <div style="display:flex;align-items:flex-end;gap:4px;height:120px;padding:8px 0">
+          ${weeks.map((w,i) => {
+            const v = parseFloat(trendVals[i]);
+            const h = Math.min(100, Math.max(20, v / (parseFloat(k.target)||100) * 100));
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <span style="font-size:9px;color:var(--muted)">${v}</span>
+              <div style="width:100%;height:${h}px;background:linear-gradient(to top, var(--color-hold), rgba(59,130,246,0.5));border-radius:3px 3px 0 0;transition:height .3s"></div>
+              <span style="font-size:9px;color:var(--muted)">${w}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--radius);padding:12px;margin-top:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">关联分解维度</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+          <div style="padding:4px 8px;background:var(--card);border-radius:4px;color:var(--text2)">📂 维度：产线</div>
+          <div style="padding:4px 8px;background:var(--card);border-radius:4px;color:var(--text2)">📂 维度：班次</div>
+          <div style="padding:4px 8px;background:var(--card);border-radius:4px;color:var(--text2)">📂 维度：物料类型</div>
+          <div style="padding:4px 8px;background:var(--card);border-radius:4px;color:var(--text2)">📂 维度：设备</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  
+  // 记录KPI列表供下次使用
+  _kpiDetailList = _kpiDetailList.length ? _kpiDetailList : [k];
+}
+
+// 诊断根因弹窗（复用场景详情）
+async function showDiagnose(idx) {
+  // 默认定位到场景1（FPY）的诊断页面
+  const sceneId = 1;
+  await showSceneDetail(sceneId, '');
+}
+</script>
 </script>
 </body>
 </html>
