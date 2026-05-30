@@ -93,13 +93,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <span class="icon">📐</span> 数据标准
       </div>
       <div style="border-top:1px solid var(--border-color);margin:12px 20px 0;"></div>
-      <div class="nav-item" onclick="window.open('/xiyi-config-console.html','_self')" style="font-size:12px">
+      <div class="nav-item" onclick="window.location.href = '/xiyi-config-console.html','_self')" style="font-size:12px">
         <span class="icon">⚙️</span> 系统配置
       </div>
-      <div class="nav-item" onclick="window.open('/xiyi-capa-manager.html','_self')" style="font-size:12px">
+      <div class="nav-item" onclick="window.location.href = '/xiyi-capa-manager.html','_self')" style="font-size:12px">
         <span class="icon">🔄</span> CAPA管理
       </div>
-      <div class="nav-item" onclick="window.open('/xiyi-index.html','_self')" style="font-size:12px">
+      <div class="nav-item" onclick="window.location.href = '/xiyi-index.html','_self')" style="font-size:12px">
         <span class="icon">↩</span> 返回首页
       </div>
     </nav>
@@ -305,7 +305,7 @@ loadAll();
 function showKpiDetail(idx) {
   var k = _kpiDetailList[idx];
   if (!k) return;
-  window.open('/xiyi-kpi-detail.html?name=' + encodeURIComponent(k.name) + '&value=' + encodeURIComponent(k.value) + '&target=' + encodeURIComponent(k.target) + '&unit=' + encodeURIComponent(k.unit||'') + '&level=' + encodeURIComponent(k.level||'success') + '&idx=' + idx, 'kpiDetail', 'width=800,height=700,top=50,left=100');
+  window.location.href = '/xiyi-kpi-detail.html?name=' + encodeURIComponent(k.name) + '&value=' + encodeURIComponent(k.value) + '&target=' + encodeURIComponent(k.target) + '&unit=' + encodeURIComponent(k.unit||'') + '&level=' + encodeURIComponent(k.level||'success') + '&idx=' + idx;
 }
 
 // 诊断根因弹窗（复用场景详情）
