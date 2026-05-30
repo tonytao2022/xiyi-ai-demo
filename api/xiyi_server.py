@@ -179,43 +179,105 @@ def mock_data(scene_id):
         return api_error(e)
 
 
+@app.route('/api/v1/xiyi/capa/plans', methods=['GET'])
+def list_capa_plans():
+    """获取CAPA方案列表"""
+    try:
+        instance_id = request.args.get('instance_id', type=int)
+        with get_cursor() as cur:
+            if instance_id:
+                cur.execute("SELECT * FROM ap_capa_plan WHERE instance_id=%s ORDER BY created_at DESC", (instance_id,))
+            else:
+                cur.execute("SELECT p.*, i.title as instance_title FROM ap_capa_plan p LEFT JOIN ap_analysis_instance i ON p.instance_id=i.id ORDER BY p.created_at DESC LIMIT 50")
+            return api_success({'plans': [dict(r) for r in cur.fetchall()]})
+    except Exception as e:
+        return api_error(e)
 
-@app.route('/api/v1/xiyi/scenes/<int:scene_id>', methods=['PUT'])
-def update_scene(scene_id):
+@app.route('/api/v1/xiyi/capa/plans', methods=['POST'])
+def create_capa_plan():
+    """创建CAPA方案"""
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            cur.execute("""INSERT INTO ap_capa_plan (plan_code,instance_id,title,root_cause,plan_content,priority,status,created_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)""",
+                (data['plan_code'], data.get('instance_id',0), data.get('title','CAPA方案'),
+                 data.get('root_cause',''), data.get('plan_content',''),
+                 data.get('priority','medium'), 'draft', 'admin'))
+            pid = cur.lastrowid
+            return api_success({'plan_id': pid, 'plan_code': data['plan_code']})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/capa/plans/<int:plan_id>', methods=['GET'])
+def get_capa_plan(plan_id):
+    """获取CAPA方案详情含任务"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT * FROM ap_capa_plan WHERE id=%s", (plan_id,))
+            plan = cur.fetchone()
+            if not plan: return api_error('方案不存在')
+            cur.execute("SELECT t.*, (SELECT COUNT(*) FROM ap_capa_task_track WHERE task_id=t.id) as track_count FROM ap_capa_task t WHERE t.plan_id=%s ORDER BY t.id", (plan_id,))
+            tasks = [dict(r) for r in cur.fetchall()]
+            return api_success({'plan': dict(plan), 'tasks': tasks})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/capa/tasks', methods=['POST'])
+def create_capa_task():
+    """创建CAPA任务"""
+    try:
+        data = request.get_json()
+        with get_cursor() as cur:
+            cur.execute("""INSERT INTO ap_capa_task (plan_id,task_code,title,description,assignee,deadline,priority,status,deliverables)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                (data['plan_id'], data['task_code'], data.get('title',''), data.get('description',''),
+                 data.get('assignee',''), data.get('deadline',None), data.get('priority','medium'), 'open', data.get('deliverables','')))
+            tid = cur.lastrowid
+            return api_success({'task_id': tid})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/capa/tasks/<int:task_id>', methods=['PUT'])
+def update_capa_task(task_id):
+    """更新CAPA任务状态"""
     try:
         data = request.get_json()
         with get_cursor() as cur:
             sets = []
             params = []
-            for f in ['scene_name','category','description','status','icon','role_type']:
+            for f in ['status','assignee','deadline','priority','deliverables','title','description']:
                 if f in data:
                     sets.append(f + "=%s")
                     params.append(data[f])
-            if not sets:
-                return api_error('没有需要更新的字段')
-            params.append(scene_id)
-            cur.execute("UPDATE ap_scene_config SET " + ",".join(sets) + " WHERE id=%s", params)
+            if sets:
+                params.append(task_id)
+                cur.execute("UPDATE ap_capa_task SET " + ",".join(sets) + " WHERE id=%s", params)
             return api_success({'message':'更新成功'})
     except Exception as e:
         return api_error(e)
 
-@app.route('/api/v1/xiyi/scenes', methods=['POST'])
-def create_scene():
+@app.route('/api/v1/xiyi/capa/tasks/<int:task_id>/track', methods=['POST'])
+def add_task_track(task_id):
+    """添加任务跟踪记录"""
     try:
         data = request.get_json()
-        code = data.get('scene_code','')
-        name = data.get('scene_name','')
-        if not code or not name:
-            return api_error('scene_code和scene_name必填')
         with get_cursor() as cur:
-            cur.execute("INSERT INTO ap_scene_config (scene_code,scene_name,category,description,role_type,icon) VALUES (%s,%s,%s,%s,%s,%s)",
-                (code, name, data.get('category',''), data.get('description',''), data.get('role_type','quality'), 'chart-line'))
-            scene_id = cur.lastrowid
-            step_types = [('definition','问题定义与数据'),('analysis','现象分析与定位'),('correlation','4M1E关联分析'),('verification','核心根因验证'),('attribution','能力短板归因'),('solution','解决方案CAPA'),('tracking','任务落地跟踪')]
-            for i,(st, sn) in enumerate(step_types, 1):
-                cur.execute("INSERT INTO ap_scene_step (scene_id,step_code,step_name,step_type,sort_order) VALUES(%s,%s,%s,%s,%s)",
-                    (scene_id, code + "_STEP_%02d" % i, sn, st, i))
-            return api_success({'scene_id':scene_id,'message':'创建成功，已添加默认7步流程'})
+            cur.execute("""INSERT INTO ap_capa_task_track (task_id,track_time,track_type,content,verifier,verify_result)
+                VALUES (%s,NOW(),%s,%s,%s,%s)""",
+                (task_id, data.get('track_type','progress'), data.get('content',''),
+                 data.get('verifier',''), data.get('verify_result','')))
+            return api_success({'message':'跟踪记录已添加'})
+    except Exception as e:
+        return api_error(e)
+
+@app.route('/api/v1/xiyi/capa/tasks/<int:task_id>/tracks', methods=['GET'])
+def list_task_tracks(task_id):
+    """获取任务跟踪记录"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT * FROM ap_capa_task_track WHERE task_id=%s ORDER BY track_time DESC", (task_id,))
+            return api_success({'tracks': [dict(r) for r in cur.fetchall()]})
     except Exception as e:
         return api_error(e)
 if __name__ == '__main__':
