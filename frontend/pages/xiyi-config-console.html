@@ -244,10 +244,11 @@ async function loadIndicators() {
     if (r.code === 0) {
       const inds = r.data.indicators || [];
       document.getElementById('tabIndicators').innerHTML = `<div class="card"><div class="card-h">指标定义 <span style="font-size:11px;color:var(--muted);font-weight:400">共${inds.length}个</span></div>
-        <div class="card-b"><table><thead><tr><th>编码</th><th>名称</th><th>分类</th><th>计算逻辑</th><th>单位</th><th>阈值</th></tr></thead><tbody>
+        <div class="card-b"><table><thead><tr><th>编码</th><th>名称</th><th>分类</th><th>计算逻辑</th><th>单位</th><th>阈值</th><th>操作</th></tr></thead><tbody>
         ${inds.map(ind => `<tr><td style="color:var(--blue)">${ind.indicator_code}</td><td>${ind.indicator_name}</td>
           <td>${ind.category_name||'—'}</td><td style="font-size:11px;color:var(--muted)">${(ind.calc_logic||'').slice(0,40)}</td>
-          <td>${ind.unit||''}</td><td>${ind.threshold_lower||0}~${ind.threshold_upper||'∞'}</td></tr>`).join('')}
+          <td>${ind.unit||''}</td><td>${ind.threshold_lower||0}~${ind.threshold_upper||'∞'}</td>
+          <td><button class="btn btn-outline btn-sm" onclick="editIndicator('${ind.indicator_code}','${ind.indicator_name}',${ind.threshold_lower||0},${ind.threshold_upper||0},'${ind.unit||''}','${ind.alert_level||'warning'}')">✏️</button></td></tr>`).join('')}
         </tbody></table></div></div>`;
     }
   } catch(e) {}
