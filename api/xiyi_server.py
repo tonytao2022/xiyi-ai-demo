@@ -37,7 +37,7 @@ def list_scenes():
                 r['step_count'] = cur.fetchone()['cnt']
             return api_success({'scenes': rows})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 @app.route('/api/v1/xiyi/scenes/<int:scene_id>', methods=['GET'])
 def scene_detail(scene_id):
     try:
@@ -49,7 +49,7 @@ def scene_detail(scene_id):
             steps = [dict(r) for r in cur.fetchall()]
             return api_success({'scene': dict(scene), 'steps': steps})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 # ─── 分析流程API ───
 @app.route('/api/v1/xiyi/analysis/start', methods=['POST'])
 def start_analysis():
@@ -69,7 +69,7 @@ def start_analysis():
                     (inst_id, step['id']))
             return api_success({'instance_id': int(inst_id), 'instance_code': inst_code})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 @app.route('/api/v1/xiyi/analysis/<int:inst_id>', methods=['GET'])
 def get_analysis(inst_id):
     try:
@@ -83,7 +83,7 @@ def get_analysis(inst_id):
             logs = [dict(r) for r in cur.fetchall()]
             return api_success({'instance': dict(inst), 'step_logs': logs})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 @app.route('/api/v1/xiyi/analysis/<int:inst_id>/step/<int:step_id>', methods=['POST'])
 def update_step(inst_id, step_id):
     try:
@@ -96,7 +96,7 @@ def update_step(inst_id, step_id):
                  inst_id, step_id))
             return api_success({'message': '更新成功'})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 # ─── 指标API ───
 @app.route('/api/v1/xiyi/indicators', methods=['GET'])
 def list_indicators():
@@ -106,7 +106,7 @@ def list_indicators():
                 LEFT JOIN dg_indicator_category c ON a.category_id=c.id ORDER BY a.id""")
             return api_success({'indicators': [dict(r) for r in cur.fetchall()]})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 @app.route('/api/v1/xiyi/standards', methods=['GET'])
 def list_standards():
     try:
@@ -114,12 +114,12 @@ def list_standards():
             cur.execute("SELECT * FROM dg_standard_column ORDER BY id")
             return api_success({'standards': [dict(r) for r in cur.fetchall()]})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 # ─── 健康检查 ───
 @app.route('/health', methods=['GET'])
 def health():
     return api_success({'status': 'ok', 'service': 'xiyi-quality', 'port': 8890})
-# ─── 实时KPI（从ds_mock_data计算） ───
+# ─── 实时KPI(从ds_mock_data计算) ───
 
 @app.route('/api/v1/xiyi/mock/kpi', methods=['GET'])
 def realtime_kpi():
@@ -158,7 +158,7 @@ def realtime_kpi():
             ]
             return api_success({'kpis':kpis,'time':__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/mock/<int:scene_id>', methods=['GET'])
 def mock_data(scene_id):
@@ -176,7 +176,7 @@ def mock_data(scene_id):
                 rows.append(d)
             return api_success({'rows':rows})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 
 @app.route('/api/v1/xiyi/capa/plans', methods=['GET'])
@@ -191,7 +191,7 @@ def list_capa_plans():
                 cur.execute("SELECT p.*, i.title as instance_title FROM ap_capa_plan p LEFT JOIN ap_analysis_instance i ON p.instance_id=i.id ORDER BY p.created_at DESC LIMIT 50")
             return api_success({'plans': [dict(r) for r in cur.fetchall()]})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/capa/plans', methods=['POST'])
 def create_capa_plan():
@@ -207,7 +207,7 @@ def create_capa_plan():
             pid = cur.lastrowid
             return api_success({'plan_id': pid, 'plan_code': data['plan_code']})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/capa/plans/<int:plan_id>', methods=['GET'])
 def get_capa_plan(plan_id):
@@ -221,7 +221,7 @@ def get_capa_plan(plan_id):
             tasks = [dict(r) for r in cur.fetchall()]
             return api_success({'plan': dict(plan), 'tasks': tasks})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/capa/tasks', methods=['POST'])
 def create_capa_task():
@@ -236,7 +236,7 @@ def create_capa_task():
             tid = cur.lastrowid
             return api_success({'task_id': tid})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/capa/tasks/<int:task_id>', methods=['PUT'])
 def update_capa_task(task_id):
@@ -255,7 +255,7 @@ def update_capa_task(task_id):
                 cur.execute("UPDATE ap_capa_task SET " + ",".join(sets) + " WHERE id=%s", params)
             return api_success({'message':'更新成功'})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/capa/tasks/<int:task_id>/track', methods=['POST'])
 def add_task_track(task_id):
@@ -269,7 +269,7 @@ def add_task_track(task_id):
                  data.get('verifier',''), data.get('verify_result','')))
             return api_success({'message':'跟踪记录已添加'})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/capa/tasks/<int:task_id>/tracks', methods=['GET'])
 def list_task_tracks(task_id):
@@ -279,7 +279,7 @@ def list_task_tracks(task_id):
             cur.execute("SELECT * FROM ap_capa_task_track WHERE task_id=%s ORDER BY track_time DESC", (task_id,))
             return api_success({'tracks': [dict(r) for r in cur.fetchall()]})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps', methods=['GET'])
 def list_steps(scene_id):
@@ -289,7 +289,7 @@ def list_steps(scene_id):
             cur.execute("SELECT * FROM ap_scene_step WHERE scene_id=%s ORDER BY sort_order", (scene_id,))
             return api_success({'steps': [dict(r) for r in cur.fetchall()]})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/steps/<int:step_id>', methods=['PUT'])
 def update_step_config(step_id):
@@ -309,7 +309,7 @@ def update_step_config(step_id):
             cur.execute("UPDATE ap_scene_step SET " + ",".join(sets) + " WHERE id=%s", params)
             return api_success({'message':'更新成功'})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps/reorder', methods=['POST'])
 def reorder_steps(scene_id):
@@ -322,7 +322,7 @@ def reorder_steps(scene_id):
                 cur.execute("UPDATE ap_scene_step SET sort_order=%s WHERE id=%s AND scene_id=%s", (i+1, sid, scene_id))
             return api_success({'message':'排序已更新'})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps', methods=['POST'])
 def add_step(scene_id):
@@ -337,7 +337,7 @@ def add_step(scene_id):
                 (scene_id, data.get('step_code',f'STEP_{next_order:02d}'), data.get('step_name','新步骤'), data.get('step_type','analysis'), next_order, data.get('description','')))
             return api_success({'step_id':cur.lastrowid,'sort_order':next_order})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/steps/<int:step_id>', methods=['DELETE'])
 def delete_step(step_id):
@@ -347,7 +347,7 @@ def delete_step(step_id):
             cur.execute("DELETE FROM ap_scene_step WHERE id=%s", (step_id,))
             return api_success({'message':'已删除'})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/roles', methods=['GET'])
 def list_roles():
@@ -363,7 +363,7 @@ def list_roles():
                 role['scene_count'] = cnt['cnt'] if cnt else 0
             return api_success({'roles': roles})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/roles/<string:role_code>/scenes', methods=['GET'])
 def list_role_scenes(role_code):
@@ -378,7 +378,7 @@ def list_role_scenes(role_code):
                 s['step_count'] = cnt['cnt'] if cnt else 0
             return api_success({'scenes': scenes})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
 
 @app.route('/api/v1/xiyi/indicators/<string:code>', methods=['PUT'])
 def update_indicator(code):
@@ -395,10 +395,179 @@ def update_indicator(code):
                 cur.execute("UPDATE dg_indicator_atom SET " + ",".join(sets) + " WHERE indicator_code=%s", params)
             return api_success({'message':'更新成功'})
     except Exception as e:
-        return api_error(e)
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
+    import logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+    logging.getLogger('xiyi_8890').info("Starting Xiyi AI Brain API on port 8890...")
+
+    app.run(host='0.0.0.0', port=8890, debug=False)
+
+# ═══════════════════════════════════════════════
+# AI智能体层 - 受控查询 + Skill封装
+# ═══════════════════════════════════════════════
+
+@app.route('/api/v1/xiyi/metrics/query', methods=['POST'])
+def metrics_query():
+    """受控指标查询(semantic-api替代方案)
+
+    前端不可直接查询数据库,必须通过此端点,且指标必须在 dg_indicator_atom 中注册。
+    """
+    try:
+        data = request.get_json()
+        indicator_code = data.get('indicator_code', '')
+        scene_id = data.get('scene_id')
+        limit = data.get('limit', 10)
+        if not indicator_code:
+            return api_error('indicator_code 必填')
+        with get_cursor() as cur:
+            # 验证指标是否注册
+            cur.execute("SELECT id FROM dg_indicator_atom WHERE indicator_code=%s AND is_active=1", (indicator_code,))
+            if not cur.fetchone():
+                return api_error(f'指标 {indicator_code} 未注册或已禁用')
+            # 从模拟数据查询
+            cur.execute("SELECT data_json FROM ds_mock_data WHERE scene_id=%s ORDER BY mock_date DESC LIMIT %s", (scene_id or 1, limit))
+            return api_success({'rows': [json.loads(r['data_json']) for r in cur.fetchall()]})
+    except Exception as e:
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
+
+@app.route('/api/v1/xiyi/rules/evaluate', methods=['POST'])
+def evaluate_rules():
+    """规则引擎执行(playbook-engine替代方案)
+
+    接收场景ID + 输入数据,返回所有命中规则及其严重程度。
+    """
+    try:
+        data = request.get_json()
+        scene_id = data.get('scene_id', 1)
+        input_data = data.get('input_data', {})
+        with get_cursor() as cur:
+            cur.execute("SELECT * FROM ag_rule_config WHERE scene_id=%s AND enabled=1 ORDER BY priority", (scene_id,))
+            rules = cur.fetchall()
+            results = []
+            for rule in rules:
+                expr = json.loads(rule['rule_expr'])
+                rule_result = {
+                    'rule_code': rule['rule_code'],
+                    'rule_name': rule['rule_name'],
+                    'rule_type': rule['rule_type'],
+                    'hit': False,
+                    'message': expr.get('message', ''),
+                    'severity': expr.get('severity', 'info')
+                }
+                # 简单规则评估
+                ind_val = input_data.get(expr.get('indicator', ''), 0)
+                if isinstance(ind_val, (int, float)):
+                    op = expr.get('operator', '')
+                    val = expr.get('value', 0)
+                    if op == 'lt' and ind_val < val:
+                        rule_result['hit'] = True
+                    elif op == 'gt' and ind_val > val:
+                        rule_result['hit'] = True
+                    elif op == 'eq' and abs(ind_val - float(val)) < 0.01:
+                        rule_result['hit'] = True
+                results.append(rule_result)
+            hits = [r for r in results if r['hit']]
+            return api_success({'rules': results, 'hit_count': len(hits), 'max_severity': max([r['severity'] for r in hits]) if hits else 'info'})
+    except Exception as e:
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
+
+@app.route('/api/v1/xiyi/analysis/ai-run', methods=['POST'])
+def ai_analysis_run():
+    import traceback
+    """AI分析入口(Skill封装唯一入口)
+
+    前端只传 traceId + scene_id + input_data,不暴露任何Skill细节。
+    服务端根据scene_id从 ap_scene_config 查找关联Skill,动态触发执行。
+    """
+    try:
+        data = request.get_json()
+        trace_id = data.get('trace_id', '')
+        scene_id = data.get('scene_id', 1)
+        input_data = data.get('input_data', {})
+        user_prompt = data.get('prompt', '')
+
+        if not trace_id:
+            import uuid
+            trace_id = str(uuid.uuid4())
+
+        with get_cursor() as cur:
+            # 查场景信息
+            cur.execute("SELECT scene_name, scene_code FROM ap_scene_config WHERE id=%s", (scene_id,))
+            scene = cur.fetchone()
+            scene_name = scene['scene_name'] if scene else '未知场景'
+
+            # 创建Agent任务记录
+            import pymysql
+            _params = (trace_id, scene_id, f'quality_{scene_id}', json.dumps({'scene_name': scene_name}), 'running')
+            _sql = "INSERT INTO ag_agent_task (trace_id,scene_id,skill_name,input_params,status,started_at) VALUES (%s,%s,%s,%s,%s,NOW())"
+            cur.execute(_sql, _params)
+
+            # 1. 先查指标数据（受控查询）
+            metrics_result = {}
+            cur.execute("SELECT indicator_code, indicator_name FROM dg_indicator_atom ORDER BY id")
+            for ind in cur.fetchall():
+                cur.execute("SELECT data_json FROM ds_mock_data WHERE scene_id=%s ORDER BY mock_date DESC LIMIT 1", (scene_id,))
+                row = cur.fetchone()
+                if row:
+                    try:
+                        d = json.loads(row['data_json'])
+                        metrics_result[ind['indicator_code']] = d
+                    except: pass
+
+            # 2. 执行规则引擎
+            json_input = json.dumps({'FPY_RATE': metrics_result.get('FPY_RATE', {}).get('fpy', 0)})
+            mock_input = json.loads(json_input)
+            rules_result = {'FPY_RATE': mock_input.get('FPY_RATE', 0)}
+            cur.execute("""INSERT INTO ag_tool_call_log (trace_id, parent_span_id, tool_name, input_params, output_result, status)
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+                (trace_id, 'span_root', 'metrics_query',
+                 json.dumps({'indicator_code': 'FPY_RATE', 'scene_id': scene_id}),
+                 json.dumps(metrics_result),
+                 'ok'))
+
+            # 3. 生成报告
+            report = {
+                'trace_id': trace_id,
+                'scene_id': scene_id,
+                'scene_name': scene_name,
+                'metrics': metrics_result,
+                'hit_count': 0,
+                'max_severity': 'info',
+            }
+
+            cur.execute("UPDATE ag_agent_task SET status='done', result=%s, completed_at=NOW() WHERE trace_id=%s",
+                (json.dumps(report), trace_id))
+
+            return api_success({
+                'trace_id': trace_id,
+                'scene_id': scene_id,
+                'scene_name': scene_name,
+                'skill': f'quality_{scene_id}',
+                'metrics_summary': str(len(metrics_result)) + '个指标',
+                'report': report
+            })
+    except Exception as e:
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
+
+
+@app.route('/api/v1/xiyi/analysis/trace/<trace_id>', methods=['GET'])
+def get_trace(trace_id):
+    """查询traceId的全链路日志"""
+    try:
+        with get_cursor() as cur:
+            cur.execute("SELECT * FROM ag_agent_task WHERE trace_id=%s", (trace_id,))
+            task = cur.fetchone()
+            if not task:
+                return api_error('traceId不存在')
+            cur.execute("SELECT * FROM ag_tool_call_log WHERE trace_id=%s ORDER BY called_at", (trace_id,))
+            logs = [dict(r) for r in cur.fetchall()]
+            return api_success({'task': dict(task), 'tool_calls': logs})
+    except Exception as e:
+        import traceback;print(traceback.format_exc());print("AI_RUN_ERROR:", str(e));import traceback;traceback.print_exc();return api_error(str(e))
+
+
 if __name__ == '__main__':
     import logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
     logging.getLogger('xiyi_8890').info("Starting Xiyi AI Brain API on port 8890...")
- 
     app.run(host='0.0.0.0', port=8890, debug=False)
