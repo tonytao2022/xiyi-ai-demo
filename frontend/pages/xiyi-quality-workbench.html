@@ -201,7 +201,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 <script>
 const API = '/api/v1/xiyi';
 
-// ------ 角色上下文 ------\nconst _urlParams = new URLSearchParams(window.location.search);
+// ------ 角色上下文 ------
+const _urlParams = new URLSearchParams(window.location.search);
 const _currentRole = _urlParams.get('role') || 'quality_specialist';
 const _roleNames = {
   'quality_specialist': '品质专员',
