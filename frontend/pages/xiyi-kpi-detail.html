@@ -103,7 +103,7 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
   var html = '';
   // 三个关键数字
   html += '<div class="triple">';
-  html += '<div class="stat"><div class="l">当前值</div><div class="v" style="color:' + clr + '">' + value + '</div></div>';
+  html += '<div class="stat"><div class="l">当前值</div><div class="v" style="color:' + clr + '">' + value + '%' + '</div></div>';
   html += '<div class="stat"><div class="l">目标值</div><div class="v" style="color:var(--text)">' + target + '</div></div>';
   // 偏差值 = 当前值 - 目标值（去除大于小于号和百分号，只取数字）
   var curNum = parseFloat(value) || 0;
