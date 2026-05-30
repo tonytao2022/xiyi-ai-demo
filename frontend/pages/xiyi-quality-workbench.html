@@ -293,17 +293,7 @@ async function loadAll() {
         }).join("");
       }
     }
-      const html = inds.map(ind => `
-        <div class="kpi-card">
-          <div class="kpi-label">${ind.indicator_name}</div>
-          <div class="kpi-value" style="color:${kpiColor(ind)}">${ind.threshold_lower || '—'}<span style="font-size:13px;color:var(--text-muted)"> ${ind.unit||''}</span></div>
-          <div class="kpi-target">类别: ${ind.category_name || '—'}</div>
-          <div class="kpi-threshold">${thresholdStr(ind)}</div>
-        </div>
-      `).join('');
-      document.getElementById('kpiGrid').innerHTML = html;
-      document.getElementById('indicatorFullList').innerHTML = html;
-    }
+
 
     // 2. 场景（按角色过滤）
     const sr = await fetch(`${API}/roles/${_currentRole}/scenes`).then(r=>r.json());
