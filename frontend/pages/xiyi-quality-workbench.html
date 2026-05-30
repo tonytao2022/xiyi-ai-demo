@@ -273,6 +273,7 @@ async function loadAll() {
           <div class="scene-name">${s.scene_name}</div>
           <div class="scene-desc">${(s.description||'').length>80 ? (s.description||'').slice(0,80)+'...' : s.description||''}</div>
           <div class="step-badge"><span>${s.step_count||7}步</span></div>
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();aiAnalyze(${s.id},'${s.scene_name}')" style="margin-top:8px;width:100%;font-size:12px">🧠 AI分析</button>
         </div>
       `).join('');
       document.getElementById('sceneGrid').innerHTML = cardHtml;
@@ -565,6 +566,102 @@ window.showSceneDetail = async function(sceneId, sceneName) {
   }, 300);
   return result;
 };
+</script>
+</body>
+</html>
+
+<style>
+/* AI分析弹窗 */
+.ai-report{font-size:14px;line-height:1.8}
+.ai-report h1,.ai-report h2,.ai-report h3{color:var(--text-bright);margin:16px 0 8px}
+.ai-report h1{font-size:18px}
+.ai-report h2{font-size:16px;border-left:3px solid var(--blue);padding-left:10px}
+.ai-report h3{font-size:14px}
+.ai-report table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.ai-report th{padding:6px 8px;background:var(--bg2);color:var(--text2);border-bottom:2px solid var(--border)}
+.ai-report td{padding:5px 8px;border-bottom:1px solid var(--border-light);color:var(--text2)}
+.ai-report ul,.ai-report ol{padding-left:20px;margin:8px 0}
+.ai-report li{margin:4px 0;color:var(--text2)}
+.ai-report strong{color:var(--text)}
+.ai-report .warning{color:var(--color-warning)}
+.ai-report .danger{color:var(--color-defect)}
+.ai-report .success{color:var(--color-bear)}
+.ai-report code{background:var(--bg2);padding:1px 6px;border-radius:4px;font-size:12px}
+.ai-loading{text-align:center;padding:40px;color:var(--text-muted)}
+.ai-loading .spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
+<script>
+// ═══ AI分析（调用OpenClaw） ═══
+async function aiAnalyze(sceneId, sceneName) {
+  const traceId = 'ai-' + Date.now() + '-' + Math.random().toString(36).slice(2,6);
+  
+  const overlay = document.createElement('div');
+  overlay.className = 'scene-detail-overlay';
+  overlay.id = 'aiOverlay';
+  overlay.onclick = function(e) { if (e.target === this) this.remove(); };
+  
+  overlay.innerHTML = `<div class="scene-detail-panel" style="max-width:800px">
+    <div class="panel-header">
+      <h2>🧠 AI分析 — ${sceneName}</h2>
+      <button class="close-btn" onclick="document.getElementById('aiOverlay')?.remove()">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="ai-loading" id="aiLoading">
+        <div class="spinner"></div>
+        <div style="margin-top:12px">OpenClaw正在分析中...</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">调用deepseek-v4-flash模型推理</div>
+      </div>
+      <div id="aiResult" style="display:none"></div>
+      <div id="aiError" style="display:none;padding:20px;color:var(--color-defect)" class="ai-loading"></div>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  
+  try {
+    const r = await fetch(`${API}/analysis/ai-run`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({trace_id: traceId, scene_id: sceneId, input_data: {}})
+    }).then(r=>r.json());
+    
+    document.getElementById('aiLoading').style.display = 'none';
+    
+    if (r.code === 0) {
+      const report = r.data.report || {};
+      const aiText = report.ai_analysis || '';
+      if (aiText) {
+        // Markdown转HTML（简单转换）
+        let html = aiText
+          .replace(/### (.+)/g, '<h3>$1</h3>')
+          .replace(/## (.+)/g, '<h2>$1</h2>')
+          .replace(/# (.+)/g, '<h1>$1</h1>')
+          .replace(/\|(.+)\|/g, function(m) {
+            if (m.includes('---')) return '';
+            return '<tr>' + m.split('|').filter(c=>c).map(c=>'<td>'+c.trim()+'</td>').join('') + '</tr>';
+          })
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n\n/g, '</p><p>')
+          .replace(/\n- /g, '</li><li>')
+          .replace(/\n/g, '<br>');
+        
+        document.getElementById('aiResult').innerHTML = `<div class="ai-report"><p>${html}</p></div>`;
+        document.getElementById('aiResult').style.display = '';
+      } else {
+        document.getElementById('aiError').textContent = 'AI分析返回为空';
+        document.getElementById('aiError').style.display = '';
+      }
+    } else {
+      document.getElementById('aiError').textContent = '分析失败: ' + (r.error||'');
+      document.getElementById('aiError').style.display = '';
+    }
+  } catch(e) {
+    document.getElementById('aiLoading').style.display = 'none';
+    document.getElementById('aiError').textContent = '请求异常: ' + e.message;
+    document.getElementById('aiError').style.display = '';
+  }
+}
 </script>
 </body>
 </html>
