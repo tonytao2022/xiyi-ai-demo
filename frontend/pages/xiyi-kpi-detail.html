@@ -105,12 +105,12 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
   html += '<div class="triple">';
   html += '<div class="stat"><div class="l">当前值</div><div class="v" style="color:' + clr + '">' + value + '</div></div>';
   html += '<div class="stat"><div class="l">目标值</div><div class="v" style="color:var(--text)">' + target + '</div></div>';
-  // 计算偏差值（百分比）
-  var curVal = parseFloat(value) || 0;
-  var tgtVal = parseFloat(target) || 1;
-  var devPct = ((curVal - tgtVal) / tgtVal * 100).toFixed(1);
-  var devClr = devPct >= 0 ? 'var(--green)' : 'var(--red)';
-  html += '<div class="stat"><div class="l">偏差值</div><div class="v" style="color:' + devClr + ';font-size:20px">' + (devPct >= 0 ? '+' : '') + devPct + '%</div></div>';
+  // 偏差值 = 当前值 - 目标值
+  var curNum = parseFloat(value) || 0;
+  var tgtNum = parseFloat(target) || 0;
+  var devVal = (curNum - tgtNum) / 100;
+  var devClr = devVal >= 0 ? 'var(--green)' : 'var(--red)';
+  html += '<div class="stat"><div class="l">偏差值</div><div class="v" style="color:' + devClr + ';font-size:20px">' + (devVal >= 0 ? '+' : '') + devVal.toFixed(2) + '</div></div>';
   html += '</div>';
 
   // 指标定义
