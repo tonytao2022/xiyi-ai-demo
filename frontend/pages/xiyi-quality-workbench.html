@@ -249,9 +249,9 @@ function kpiColor(ind) {
 }
 
 function thresholdStr(ind) {
-  if (ind.threshold_upper && ind.threshold_lower) return `阈值: ${ind.threshold_lower} ~ ${ind.threshold_upper}${ind.unit||''}`;
-  if (ind.threshold_upper) return `上限: ${ind.threshold_upper}${ind.unit||''}`;
-  if (ind.threshold_lower) return `下限: ${ind.threshold_lower}${ind.unit||''}`;
+  if (ind.threshold_upper && ind.threshold_lower) return '阈值: ' + (ind.threshold_lower||0) + ' ~ ' + (ind.threshold_upper||0) + (ind.unit||'');
+  if (ind.threshold_upper) return '上限: ' + (ind.threshold_upper||0) + (ind.unit||'');
+  if (ind.threshold_lower) return '下限: ' + (ind.threshold_lower||0) + (ind.unit||'');
   return '';
 }
 
