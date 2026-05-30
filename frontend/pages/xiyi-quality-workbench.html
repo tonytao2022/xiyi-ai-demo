@@ -374,10 +374,15 @@ function showKpiDetail(idx) {
 }
 
 // 诊断根因弹窗（复用场景详情）
-function showDiagnose(idx) {
-  // 定位到场景1（FPY），直接触发第一个场景卡片的点击
-  const firstCard = document.querySelector('.scene-card');
-  if (firstCard) firstCard.click();
+async function showDiagnose(idx) {
+  // 定位到场景1（FPY），动态fetch数据后渲染
+  try {
+    // 直接使用fetch加载场景1数据
+    const r = await fetch('/api/v1/xiyi/scenes/1').then(r=>r.json());
+    if (r.code === 0) {
+      showSceneDetail(1, r.data.scene.scene_name || '在线一次交验合格率管控');
+    }
+  } catch(e) {}
 }
 </script>
 
