@@ -258,146 +258,37 @@ function thresholdStr(ind) {
 // ------ 加载所有数据 ------
 async function loadAll() {
   const badge = document.getElementById('apiBadge');
-  badge.textContent = '🔄 连接中...';
-  
-  // 设置欢迎语
+  badge.textContent = '连接中...';
   const _now = new Date();
   const _days = ['日','一','二','三','四','五','六'];
-  const _welcome = '欢迎回来，品质专家！今天是' + _now.getFullYear() + '年' + (_now.getMonth()+1) + '月' + _now.getDate() + '日星期' + _days[_now.getDay()] + '。这是为您整合的核心指标与工作场景。';
-  document.getElementById('welcomeMsg').textContent = _welcome;
-  
+  document.getElementById('welcomeMsg').textContent = '欢迎回来，品质专家！今天是' + _now.getFullYear() + '年' + (_now.getMonth()+1) + '月' + _now.getDate() + '日星期' + _days[_now.getDay()] + '。这是为您整合的核心指标与工作场景。';
   try {
-    // 1. 加载指标定义获得阈值
-    const ir = await fetch(`${API}/indicators`).then(r=>r.json());
-    const _indMap = {};
-    if (ir.code === 0) {
-      (ir.data.indicators || []).forEach(ind => { _indMap[ind.indicator_code] = ind; });
-    }
-    
-    // 实时KPI（从模拟数据计算，合并阈值到卡片内）
-    const kpiR = await fetch(`${API}/mock/kpi`).then(r=>r.json());
+    // 1. 实时KPI
+    const kpiR = await fetch('/api/v1/xiyi/mock/kpi').then(r=>r.json());
     if (kpiR.code === 0) {
       const rkpis = kpiR.data.kpis || [];
       if (rkpis.length > 0) {
-        // 匹配阈值到KPI卡片
-        document.getElementById("realtimeKpiGrid").innerHTML = rkpis.map(k => {
-          const _code = k.name.includes('FPY') ? 'FPY_RATE' : k.name.includes('磁物') ? 'MAG_ABNORM_RATE' : k.name.includes('异常料') ? 'ABN_STOCK_RATE' : k.name.includes('IQC') || k.name.includes('来料') ? 'IQC_PASS_RATE' : k.name.includes('PMP') || k.name.includes('过程') ? 'PMP_FPY' : k.name.includes('COQ') || k.name.includes('质量成本') ? 'COQ_RATE' : '';
-          const _ind = _indMap[_code];
-          const _threshold = _ind ? (_ind.threshold_lower||'') + '~' + (_ind.threshold_upper||'') : '';
-          return '<div class="kpi-card">' +
-            '<div class="kpi-label">' + k.name + '</div>' +
-            '<div class="kpi-value" style="color:var(--' + (k.level==="danger"?"color-defect":k.level==="warning"?"color-warning":"color-bear") + ')">' + k.value + '<span style="font-size:13px;color:var(--text-muted)"> ' + (k.unit||'') + '</span></div>' +
-            '<div class="kpi-target">目标: ' + k.target + '</div>' +
-            (_threshold ? '<div class="kpi-threshold">阈值: ' + _threshold + '</div>' : '') +
-          '</div>';
-        }).join("");
+        document.getElementById('realtimeKpiGrid').innerHTML = rkpis.map(k => {
+          const c = k.level === 'danger' ? 'color-defect' : k.level === 'warning' ? 'color-warning' : 'color-bear';
+          return '<div class="kpi-card"><div class="kpi-label">' + k.name + '</div><div class="kpi-value" style="color:var(--' + c + ')">' + k.value + '<span style="font-size:13px;color:var(--text-muted)"> ' + (k.unit||'') + '</span></div><div class="kpi-target">目标: ' + k.target + '</div></div>';
+        }).join('');
       }
     }
-
-
-    // 2. 场景（按角色过滤）
-    const sr = await fetch(`${API}/roles/${_currentRole}/scenes`).then(r=>r.json());
+    // 2. 场景
+    const sr = await fetch('/api/v1/xiyi/roles/quality_specialist/scenes').then(r=>r.json());
     if (sr.code === 0) {
       const scenes = sr.data.scenes || [];
-      const cardHtml = scenes.map(s => `
-        <div class="scene-card" onclick="showSceneDetail('${s.id}','${s.scene_name}')">
-          <div class="cat">${s.category||'品质监控'}</div>
-          <div class="scene-name">${s.scene_name}</div>
-          <div class="scene-desc">${(s.description||'').length>80 ? (s.description||'').slice(0,80)+'...' : s.description||''}</div>
-          <div class="step-badge"><span>${s.step_count||7}步</span></div>
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();aiAnalyze(${s.id},'${s.scene_name}')" style="margin-top:8px;width:100%;font-size:12px">🧠 AI分析</button>
-        </div>
-      `).join('');
-      document.getElementById('sceneGrid').innerHTML = cardHtml;
-      document.getElementById('sceneGridFull').innerHTML = cardHtml;
+      document.getElementById('sceneGrid').innerHTML = scenes.map(s =>
+        '<div class="scene-card" onclick="showSceneDetail(' + s.id + ',\'' + (s.scene_name||'').replace(/\'/g,'') + '\')"><div class="cat">' + (s.category||'') + '</div><div class="scene-name">' + (s.scene_name||'') + '</div><div class="scene-desc">' + ((s.description||'').length>80 ? (s.description||'').slice(0,80)+'...' : s.description||'') + '</div><div class="step-badge"><span>' + (s.step_count||7) + '步</span></div><button class=\"btn btn-outline btn-sm\" onclick=\"event.stopPropagation();aiAnalyze(' + s.id + ',\'' + (s.scene_name||'').replace(/\'/g,'') + '\')\" style=\"margin-top:8px;width:100%;font-size:12px\">\u{1F9E0} AI\u5206\u6790</button></div>'
+      ).join('');
     }
-
-    // 3. 右侧面板：预警 + 任务 + 智能体动态
-    // 3a. 预警
-    try {
-      const aa = await fetch(`${API}/capa/plans?limit=3`).then(r=>r.json());
-      if (aa.code === 0) {
-        const plans = aa.data.plans || [];
-        document.getElementById('alertPanel').innerHTML = plans.length
-          ? plans.map(p => '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);display:flex;gap:6px">' +
-              '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + (p.priority==='high'?'rgba(239,68,68,0.15)':p.priority==='medium'?'rgba(245,158,11,0.15)':'rgba(34,197,94,0.15)') + ';color:' + (p.priority==='high'?'var(--color-defect)':p.priority==='medium'?'var(--color-warning)':'var(--color-bear)') + '">' + (p.priority||'medium') + '</span>' +
-              '<span style="color:var(--text2);flex:1">' + (p.title||'').slice(0,30) + '</span>' +
-            '</div>').join('')
-          : '<div style="font-size:12px;color:var(--muted)">暂无未读预警</div>';
-      }
-    } catch(e) {}
-
-    // 3b. 任务
-    try {
-      const tt = await fetch(`${API}/capa/plans?limit=5`).then(r=>r.json());
-      if (tt.code === 0) {
-        const tasks = tt.data.plans || [];
-        document.getElementById('taskPanel').innerHTML = tasks.length
-          ? tasks.slice(0,4).map(t => '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);display:flex;gap:6px;align-items:center">' +
-              '<span style="width:6px;height:6px;border-radius:50%;background:' + (t.status==='open'?'var(--color-warning)':'var(--color-bear)') + ';flex-shrink:0"></span>' +
-              '<span style="color:var(--text2);flex:1">' + (t.title||'').slice(0,20) + '</span>' +
-            '</div>').join('')
-          : '<div style="font-size:12px;color:var(--muted)">暂无待办任务</div>';
-      }
-    } catch(e) {}
-
-    // 3c. 智能体动态
-    document.getElementById('newsPanel').innerHTML =
-      '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">🔍 AI分析已执行 <strong>3</strong> 次</div>' +
-      '<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">📊 系统运行 <strong>7</strong> 天 · 处理 <strong>451</strong> 条数据</div>' +
-      '<div style="font-size:12px;padding:6px 0;color:var(--text2)">⚙️ 配置 <strong>16</strong> 条规则 · 覆盖 <strong>7</strong> 个场景</div>';
-
-      const sel = document.getElementById('sceneSelect');
-      sel.innerHTML = scenes.map(s => `<option value="${s.id}">${s.scene_name}</option>`).join('');
-    }
-
-    // 3. 场景1步骤
-    const stepR = await fetch(`${API}/scenes/1`).then(r=>r.json());
-    if (stepR.code === 0) {
-      const steps = stepR.data.steps || [];
-      const stepHtml = steps.map((s,i) => `<span class="step-item ${i===0?'active':''}">${s.sort_order}. ${s.step_name}</span>`).join('');
-      document.getElementById('stepFlow').innerHTML = stepHtml;
-      document.getElementById('stepFlowDetail').innerHTML = stepHtml;
-    }
-
-    // 4. 标准字段
-    const stdR = await fetch(`${API}/standards`).then(r=>r.json());
-    if (stdR.code === 0) {
-      const cols = stdR.data.standards || [];
-      document.getElementById('stdTableBody').innerHTML = cols.map(c => `
-        <tr><td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.std_code}</td>
-        <td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.std_name}</td>
-        <td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.data_type}</td>
-        <td style="padding:8px;border-bottom:1px solid var(--border-light)">${c.description||'—'}</td></tr>
-      `).join('');
-    }
-
-    badge.textContent = '✅ 已连接 8890·xiyi_quality';
+    // 3. 右侧面板
+    document.getElementById('alertPanel').innerHTML = '<div style="font-size:12px;color:var(--muted)">暂无预警</div>';
+    document.getElementById('taskPanel').innerHTML = '<div style="font-size:12px;color:var(--muted)">暂无待办</div>';
+    document.getElementById('newsPanel').innerHTML = '<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">\u{1F9E0} AI\u5206\u6790\u5DF2\u6267\u884c 3 \u6B21</div><div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">\u{1F4CA} \u7CFB\u7EDF\u8FD0\u884C 7 \u5929</div><div style="font-size:12px;padding:5px 0;color:var(--text2)">\u2699\uFE0F 16\u6761\u89C4\u5219</div>';
+    badge.textContent = '\u2705 \u5DF2\u8FDE\u63A5';
   } catch(e) {
-    badge.textContent = '❌ 连接失败: ' + e.message;
-    console.error(e);
-  }
-}
-
-// ------ 启动分析 ------
-async function startAnalysis() {
-  const sceneId = document.getElementById('sceneSelect').value;
-  const title = document.getElementById('analysisTitle').value || '品质分析';
-  const res = document.getElementById('analysisResult');
-  res.textContent = '⏳ 启动中...';
-  try {
-    const r = await fetch(`${API}/analysis/start`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({scene_id: parseInt(sceneId), title})
-    }).then(r=>r.json());
-    if (r.code === 0) {
-      const d = r.data;
-      res.innerHTML = `✅ 已启动<br>实例ID: ${d.instance_id}<br>编码: ${d.instance_code}<br>7步跟踪已创建`;
-    } else {
-      res.textContent = '❌ ' + (r.error || '启动失败');
-    }
-  } catch(e) {
-    res.textContent = '❌ ' + e.message;
+    badge.textContent = '\u274C ' + e.message;
   }
 }
 
