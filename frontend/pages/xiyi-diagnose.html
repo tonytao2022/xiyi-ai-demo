@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>根因诊断 · 兮易AI大脑</title>
+<style>
+:root{--bg:#0a0e17;--bg2:#111827;--card:#161d2a;--border:#1e2d4a;--text:#e2e8f0;--text2:#94a3b8;--muted:#64748b;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--radius:8px;--lg:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:20px;min-height:100vh}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.header h1{font-size:20px;color:#fff}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:var(--radius);font-size:12px;cursor:pointer;text-decoration:none;border:1px solid var(--border);color:var(--text2);background:transparent}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-primary{background:var(--blue);color:#fff;border:none}
+.btn-primary:hover{background:#2563eb}
+
+/* 七步流程向导 */
+.wizard{margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--lg);overflow:hidden}
+.wizard-header{padding:14px 18px;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.steps{display:flex;padding:12px 16px;gap:4px;overflow-x:auto}
+.step-item{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;font-size:12px;white-space:nowrap;background:var(--bg2);color:var(--text2);cursor:pointer;border:1px solid transparent;transition:all .2s}
+.step-item:hover{border-color:var(--blue);color:var(--text)}
+.step-item.active{background:rgba(59,130,246,0.15);color:var(--blue);border-color:var(--blue)}
+.step-item .num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:rgba(59,130,246,0.2);color:var(--blue);flex-shrink:0}
+.step-item.active .num{background:var(--blue);color:#fff}
+.step-item.done{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3);color:var(--green)}
+.step-item.done .num{background:var(--green);color:#fff}
+
+/* 内容区 */
+.content-area{padding:16px 18px}
+.content-area h2{font-size:16px;margin-bottom:12px;color:var(--text)}
+.content-area h3{font-size:14px;margin:12px 0 8px;color:var(--text2)}
+
+/* 卡片网格 */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.card .label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.card .val{font-size:18px;font-weight:700;color:var(--text)}
+.card .desc{font-size:12px;color:var(--text2);margin-top:4px}
+
+/* 4M1E网格 */
+.m1e-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.factor{padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:12px}
+.factor .tag{font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;margin-right:4px}
+.tag-red{background:rgba(239,68,68,0.15);color:var(--red)}
+.tag-yellow{background:rgba(245,158,11,0.15);color:var(--yellow)}
+.tag-green{background:rgba(34,197,94,0.15);color:var(--green)}
+.tag-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+
+/* 步骤内容面板 */
+.step-panel{display:none}
+.step-panel.active{display:block}
+
+/* 数据表格 */
+table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+th{padding:6px 8px;border-bottom:2px solid var(--border);color:var(--muted);text-align:left;font-size:11px}
+td{padding:5px 8px;border-bottom:1px solid rgba(30,45,74,0.4);color:var(--text2)}
+tr:hover td{background:rgba(59,130,246,0.03)}
+
+@media(max-width:768px){.grid-2,.m1e-grid{grid-template-columns:1fr}.steps{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>🔍 在线一次交验合格率管控 — 根因诊断</h1>
+  </div>
+  <div>
+    <a href="/xiyi-quality-workbench.html?role=quality_specialist" class="btn">← 返回工作台</a>
+  </div>
+</div>
+
+<!-- 七步流程向导 -->
+<div class="wizard">
+  <div class="wizard-header">
+    <span>⚙️ AI根因诊断向导</span>
+    <span style="font-size:11px;color:var(--muted)">步骤 1 / 7</span>
+  </div>
+  <div class="steps" id="stepTabs">
+    <div class="step-item active" data-step="1" onclick="switchStep(1)"><span class="num">1</span>问题定义与数据</div>
+    <div class="step-item" data-step="2" onclick="switchStep(2)"><span class="num">2</span>现象分析与定位</div>
+    <div class="step-item" data-step="3" onclick="switchStep(3)"><span class="num">3</span>4M1E关联分析</div>
+    <div class="step-item" data-step="4" onclick="switchStep(4)"><span class="num">4</span>核心根因验证</div>
+    <div class="step-item" data-step="5" onclick="switchStep(5)"><span class="num">5</span>能力短板归因</div>
+    <div class="step-item" data-step="6" onclick="switchStep(6)"><span class="num">6</span>解决方案CAPA</div>
+    <div class="step-item" data-step="7" onclick="switchStep(7)"><span class="num">7</span>任务落地跟踪</div>
+  </div>
+</div>
+
+<div id="stepContent">
+  <div class="step-panel active" id="step1">
+    <div class="content-area">
+      <h2>📋 问题定义与数据</h2>
+      <div class="grid-2">
+        <div class="card">
+          <div class="label">问题现象</div>
+          <div class="val" style="color:var(--yellow)">FPY 97.5%</div>
+          <div class="desc">在线一次交验合格率低于99.0%目标值，偏差 -1.50%</div>
+        </div>
+        <div class="card">
+          <div class="label">异常批次</div>
+          <div class="val">W40</div>
+          <div class="desc">2025年第40周，2#烧结线正极材料批次</div>
+        </div>
+        <div class="card">
+          <div class="label">影响范围</div>
+          <div class="val">2#烧结线</div>
+          <div class="desc">主要影响产线，其他产线FPY正常（98.0%-98.8%）</div>
+        </div>
+        <div class="card">
+          <div class="label">数据来源</div>
+          <div class="val">MES/LIMS</div>
+          <div class="desc">30天质检记录，90个样本点，3条产线</div>
+        </div>
+      </div>
+      <h3 style="margin-top:16px">📊 近30日FPY趋势</h3>
+      <table>
+        <tr><th>日期</th><th>产线</th><th>FPY%</th><th>检验数</th><th>不良数</th><th>主要不良</th></tr>
+        <tr><td>2025-10-30</td><td>2#烧结线</td><td style="color:var(--yellow)">95.2</td><td>220</td><td>10</td><td>粒度超标</td></tr>
+        <tr><td>2025-10-29</td><td>2#烧结线</td><td style="color:var(--yellow)">95.8</td><td>210</td><td>9</td><td>磁性物超标</td></tr>
+        <tr><td>2025-10-28</td><td>2#烧结线</td><td style="color:var(--yellow)">97.0</td><td>200</td><td>6</td><td>粒度+磁性物</td></tr>
+        <tr><td>2025-10-27</td><td>2#烧结线</td><td>98.2</td><td>230</td><td>4</td><td>外观瑕疵</td></tr>
+        <tr><td>2025-10-26</td><td>1#烧结线</td><td>98.5</td><td>240</td><td>4</td><td>水分异常</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step2">
+    <div class="content-area">
+      <h2>📈 现象分析与定位</h2>
+      <div class="grid-2">
+        <div class="card"><div class="label">FPY均值(30日)</div><div class="val" style="color:var(--yellow)">97.3%</div><div class="desc">全部产线综合</div></div>
+        <div class="card"><div class="label">FPY均值(30日)</div><div class="val" style="color:var(--red)">95.8%</div><div class="desc">2#烧结线单独</div></div>
+        <div class="card"><div class="label">标准差(30日)</div><div class="val">1.2%</div><div class="desc">波动增大，异常周标准差2.3%</div></div>
+        <div class="card"><div class="label">主导不良类型</div><div class="val" style="color:var(--yellow)">粒度超标</div><div class="desc">占比65%，其次磁性物22%</div></div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-top:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">定位结论</div>
+        <div style="font-size:13px;color:var(--text2)"><strong>异常定位：</strong>W40批次2#烧结线，正极材料粒度超标是FPY下降的主要原因。该产线FPY从98.2%骤降至95.2%，降幅达3个百分点，占总体FPY下降的84%。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step3">
+    <div class="content-area">
+      <h2>🔍 4M1E关联分析</h2>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">从人机料法环测六个维度分析FPY异常的影响因素</div>
+      <div class="m1e-grid">
+        <div class="factor"><span class="tag tag-yellow">高</span><span class="tag tag-blue">人</span>操作工技能：烧结参数调整经验不足，新员工占比40%</div>
+        <div class="factor"><span class="tag tag-red">高</span><span class="tag tag-blue">机</span><strong>设备精度↓</strong>：2#烧结炉温度控制偏差±15℃（标准±5℃）</div>
+        <div class="factor"><span class="tag tag-red">高</span><span class="tag tag-blue">料</span><strong>正极材料批次↓</strong>：W40批来料粒度D50超标（5.2μm vs 标准4.5μm）</div>
+        <div class="factor"><span class="tag tag-yellow">中</span><span class="tag tag-blue">法</span>工艺参数：烧结曲线设置偏保守，升温速率偏低</div>
+        <div class="factor"><span class="tag tag-green">低</span><span class="tag tag-blue">环</span>环境温湿度：车间温湿度正常，无异常波动</div>
+        <div class="factor"><span class="tag tag-yellow">中</span><span class="tag tag-blue">测</span>检测方法：粒度检测频次低（每班2次），未能及时发现异常</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step4">
+    <div class="content-area">
+      <h2>🎯 核心根因验证</h2>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">根因判断</div>
+        <div style="font-size:14px;font-weight:600;color:var(--red)">❌ 来料正极材料粒度超标 + 2#烧结炉温控偏差</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:6px">
+          <strong>验证依据：</strong><br>
+          • W40批次来料粒度D50=5.2μm（标准上限4.5μm），超标15.6%<br>
+          • 2#烧结炉实际温度735℃（设定720℃），偏差+15℃，超出±5℃标准<br>
+          • 粒度超标+温度偏高双重作用导致正极材料烧结过度，产生粗大颗粒<br>
+          • 排除其他因素：同一批次在其他产线FPY正常（98.0%），证明问题集中在2#线
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step5">
+    <div class="content-area">
+      <h2>📉 能力短板归因</h2>
+      <div class="grid-2">
+        <div class="card"><div class="label">品质管控短板</div><div class="val">来料检验频次</div><div class="desc">每批只检1次，无法覆盖批次内波动</div></div>
+        <div class="card"><div class="label">过程控制短板</div><div class="val">设备预警缺失</div><div class="desc">2#烧结炉温控器无自动预警功能</div></div>
+        <div class="card"><div class="label">检测能力短板</div><div class="val">粒度检测滞后</div><div class="desc">检测结果延迟2小时，无法实时指导生产</div></div>
+        <div class="card"><div class="label">人员技能短板</div><div class="val">新员工培训</div><div class="desc">2#线操作工在岗培训不足</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step6">
+    <div class="content-area">
+      <h2>📝 解决方案CAPA</h2>
+      <div class="grid-2">
+        <div class="card" style="grid-column:1/-1">
+          <div class="label">纠正措施（立即）</div>
+          <div class="desc">1. 校准2#烧结炉温控传感器（责任人：设备科张工，完成日：2026-06-06）<br>2. 对W40批次正极材料全检，不合格品隔离处理（责任人：品质专员，完成日：2026-06-03）</div>
+        </div>
+        <div class="card" style="grid-column:1/-1">
+          <div class="label">预防措施（长期）</div>
+          <div class="desc">1. 来料粒度检测频次从每批1次增至3次（来料/中/尾各1次）<br>2. 烧结炉温控增加SPC监控和自动预警功能<br>3. 加强2#线操作工的烧结工艺培训</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-panel" id="step7">
+    <div class="content-area">
+      <h2>📊 任务落地跟踪</h2>
+      <table>
+        <tr><th>任务</th><th>责任人</th><th>截止日</th><th>状态</th></tr>
+        <tr><td>校准2#烧结炉温控传感器</td><td>设备科张工</td><td>2026-06-06</td><td><span style="color:var(--yellow)">进行中</span></td></tr>
+        <tr><td>W40批次物料全检</td><td>品质专员</td><td>2026-06-03</td><td><span style="color:var(--yellow)">进行中</span></td></tr>
+        <tr><td>来料粒度检测频次调整</td><td>品质主管</td><td>2026-06-10</td><td><span style="color:var(--muted)">待开始</span></td></tr>
+        <tr><td>烧结炉温控预警系统</td><td>设备科张工</td><td>2026-06-20</td><td><span style="color:var(--muted)">待开始</span></td></tr>
+        <tr><td>操作工工艺培训</td><td>培训专员</td><td>2026-06-15</td><td><span style="color:var(--muted)">待开始</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchStep(n) {
+  // 切换步骤标签
+  document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+  document.querySelector('.step-item[data-step="' + n + '"]').classList.add('active');
+  
+  // 切换内容面板
+  document.querySelectorAll('.step-panel').forEach(el => el.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  
+  // 更新步骤计数
+  document.querySelector('.wizard-header span:last-child').textContent = '步骤 ' + n + ' / 7';
+  
+  // 标记已完成的步骤
+  for (var i = 1; i < n; i++) {
+    var el = document.querySelector('.step-item[data-step="' + i + '"]');
+    if (el) el.classList.add('done');
+  }
+}
+</script>
+</body>
+</html>
