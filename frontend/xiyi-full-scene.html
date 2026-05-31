@@ -141,9 +141,8 @@ function renderTab1() {
         setTimeout(function(){
           var el = document.getElementById(canvasId);
           if (!el) return;
-          var rect = el.parentNode.getBoundingClientRect();
           var dpr = window.devicePixelRatio || 1;
-          var w = rect.width, h = 200;
+          var w = el.parentNode.clientWidth || el.parentNode.offsetWidth || 600, h = 220;
           el.width = w * dpr;
           el.height = h * dpr;
           el.style.width = w + 'px';
@@ -204,7 +203,7 @@ function renderTab1() {
           ctx.fillStyle = '#6b7280'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
           ctx.fillText('FPY (%)', 0, 0); ctx.restore();
         }, 50);
-        return '<canvas id="'+canvasId+'" style="width:100%;height:200px;border-radius:6px"></canvas>';
+        return '<canvas id="'+canvasId+'" style="width:100%;height:220px;border-radius:6px;display:block"></canvas>';
       })()
     '</div>' +
     '<p style="font-size:12px;color:var(--text-muted);margin-top:8px">📡 数据来源: MOM系统自动采集与汇总，延迟小于5分钟。智能体已自动完成数据提取。</p></div></div></div>';
