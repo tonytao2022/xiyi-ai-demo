@@ -303,8 +303,26 @@ async function loadAll() {
     } catch(e) {
       document.getElementById('alertPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无预警</div>';
     }
-    // 4. 任务
-    document.getElementById('taskPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无待办</div>';
+    // 4. 任务（从sys_task表读取）
+    try {
+      const tr = await fetch('/api/v1/xiyi/tasks?limit=10').then(r=>r.json());
+      if (tr.code === 0) {
+        const tasks = tr.data.tasks || [];
+        const unfin = tr.data.unfinished_count || 0;
+        taskPanel.innerHTML = 
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:11px;color:var(--text-muted)">待处理任务</span><span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(239,68,68,0.12);color:var(--color-defect);font-weight:600">' + unfin + '项未完成</span></div>' +
+          tasks.slice(0, 3).map(function(t){
+            var icon = t.task_level === 'urgent' ? '🔴' : t.task_level === 'high' ? '🟠' : '🔵';
+            var stCls = t.status === 'overdue' ? 'background:rgba(239,68,68,0.12);color:var(--color-defect);font-size:9px' : t.status === 'inprogress' ? 'background:rgba(59,130,246,0.12);color:var(--color-hold);font-size:9px' : 'background:rgba(245,158,11,0.12);color:var(--color-warning);font-size:9px';
+            var stTxt = t.status === 'overdue' ? '已逾期' : t.status === 'inprogress' ? '进行中' : '待处理';
+            var barColor = t.status === 'overdue' ? 'var(--color-defect)' : 'var(--color-hold)';
+            return '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid rgba(30,45,74,0.15)"><div style="font-size:14px;flex-shrink:0;margin-top:1px">' + icon + '</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + t.task_title + '</div><div style="display:flex;gap:6px;margin-top:2px;align-items:center"><div style="flex:1;height:4px;background:var(--border-color);border-radius:2px"><div style="height:4px;width:' + t.progress + '%;background:' + barColor + ';border-radius:2px"></div></div><span style="font-size:9px;color:var(--text-muted)">' + t.progress + '%</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:2px;display:flex;justify-content:space-between"><span>' + (t.assignee||'') + '</span><span>' + (t.deadline_display||'') + ' <span style="padding:1px 6px;border-radius:4px;' + stCls + '">' + stTxt + '</span></span></div></div></div>';
+          }).join('') +
+          (tasks.length > 3 ? '<div style="padding:4px 0;text-align:center"><a href="/xiyi-alerts.html" style="font-size:11px;color:var(--color-hold);text-decoration:none">查看全部' + tasks.length + '项任务 →</a></div>' : '');
+      }
+    } catch(e) {
+      taskPanel.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无任务</div>';
+    }
     // 5. 新闻
     badge.textContent = '\u2705 \u5DF2\u8FDE\u63A5';
   } catch(e) {

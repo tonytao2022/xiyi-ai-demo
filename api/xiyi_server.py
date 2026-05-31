@@ -720,7 +720,7 @@ def get_trace(trace_id):
 @app.route('/api/v1/xiyi/alerts', methods=['GET'])
 @api_handler
 def list_alerts():
-    """获取预警列表,支持status过滤和未处理计数"""
+    """获取预警列表"""
     status_filter = request.args.get('status', '')
     limit = request.args.get('limit', 20, type=int)
     with get_cursor() as cur:
@@ -733,10 +733,59 @@ def list_alerts():
         params.append(limit)
         cur.execute(sql, params)
         alerts = [dict(r) for r in cur.fetchall()]
-        # 未处理计数
         cur.execute("SELECT COUNT(*) as cnt FROM sys_alert WHERE status IN ('pending','processing')")
         unread = cur.fetchone()['cnt']
         return api_success({'alerts': alerts, 'unread_count': unread})
+
+
+@app.route('/api/v1/xiyi/tasks', methods=['GET'])
+@api_handler
+def list_tasks():
+    """获取任务列表"""
+    status_filter = request.args.get('status', '')
+    limit = request.args.get('limit', 20, type=int)
+    with get_cursor() as cur:
+        sql = "SELECT * FROM sys_task"
+        params = []
+        if status_filter:
+            sql += " WHERE status=%s"
+            params.append(status_filter)
+        sql += " ORDER BY FIELD(task_level,'urgent','high','medium','low'), deadline ASC LIMIT %s"
+        params.append(limit)
+        cur.execute(sql, params)
+        tasks = [dict(r) for r in cur.fetchall()]
+        for t in tasks:
+            if isinstance(t.get('deadline'), str):
+                t['deadline_display'] = t['deadline'][:10] if len(t['deadline']) >= 10 else t['deadline']
+            elif t.get('deadline'):
+                t['deadline_display'] = str(t['deadline'])[:10]
+            else:
+                t['deadline_display'] = ''
+        # 未完成任务计数
+        cur.execute("SELECT COUNT(*) as cnt FROM sys_task WHERE status IN ('pending','inprogress','overdue')")
+        unfinished = cur.fetchone()['cnt']
+        return api_success({'tasks': tasks, 'unfinished_count': unfinished})
+
+
+@app.route('/api/v1/xiyi/tasks/<int:task_id>', methods=['PUT'])
+@api_handler
+def update_task(task_id):
+    """更新任务状态或进度"""
+    data = request.get_json()
+    with get_cursor() as cur:
+        sets = []
+        params = []
+        for f in ['status', 'progress', 'assignee']:
+            if f in data:
+                sets.append(f + "=%s")
+                params.append(data[f])
+        if 'completed' in data and data['completed']:
+            sets.append("status='completed'")
+            sets.append("completed_at=NOW()")
+        if sets:
+            params.append(task_id)
+            cur.execute("UPDATE sys_task SET " + ",".join(sets) + " WHERE id=%s", params)
+        return api_success({'message': '任务已更新'})
 
 @app.route('/api/v1/xiyi/alerts/<int:alert_id>', methods=['PUT'])
 @api_handler
