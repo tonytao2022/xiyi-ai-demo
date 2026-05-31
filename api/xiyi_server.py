@@ -717,6 +717,40 @@ def get_trace(trace_id):
         return api_success({'task': dict(task), 'tool_calls': logs})
 
 
+@app.route('/api/v1/xiyi/alerts', methods=['GET'])
+@api_handler
+def list_alerts():
+    """获取预警列表,支持status过滤和未处理计数"""
+    status_filter = request.args.get('status', '')
+    limit = request.args.get('limit', 20, type=int)
+    with get_cursor() as cur:
+        sql = "SELECT * FROM sys_alert"
+        params = []
+        if status_filter:
+            sql += " WHERE status=%s"
+            params.append(status_filter)
+        sql += " ORDER BY created_at DESC LIMIT %s"
+        params.append(limit)
+        cur.execute(sql, params)
+        alerts = [dict(r) for r in cur.fetchall()]
+        # 未处理计数
+        cur.execute("SELECT COUNT(*) as cnt FROM sys_alert WHERE status IN ('pending','processing')")
+        unread = cur.fetchone()['cnt']
+        return api_success({'alerts': alerts, 'unread_count': unread})
+
+@app.route('/api/v1/xiyi/alerts/<int:alert_id>', methods=['PUT'])
+@api_handler
+def update_alert(alert_id):
+    """更新预警状态"""
+    data = request.get_json()
+    status = data.get('status', '')
+    if not status:
+        return api_error('缺少status字段')
+    with get_cursor() as cur:
+        cur.execute("UPDATE sys_alert SET status=%s WHERE id=%s", (status, alert_id))
+        return api_success({'message': '状态已更新'})
+
+
 @app.route('/api/v1/xiyi/rules', methods=['GET'])
 @api_handler
 def list_rules():

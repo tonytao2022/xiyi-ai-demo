@@ -285,10 +285,27 @@ async function loadAll() {
         `<div class="scene-card" onclick="openDiagnose(s.id)"><div class="cat">${s.category||''}</div><div class="scene-name">${s.scene_name||''}</div><div class="scene-desc">${((s.description||'').length>80 ? (s.description||'').slice(0,80)+'...' : s.description||'')}</div><div class="step-badge"><span>${s.step_count||7}步</span></div><div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();aiAnalyze('${s.id}','${s.scene_name||''}')" style="flex:1;font-size:12px;padding:6px 8px">🧠 AI分析</button><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();fullSceneAnalyze('${s.id}','${s.scene_name||''}')" style="flex:1;font-size:12px;padding:6px 8px;color:var(--color-quality);border-color:var(--color-quality)">📊 全场景分析</button></div></div>`
       ).join('');
     }
-    // 3. 右侧面板
-    document.getElementById('alertPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无预警</div>';
+    // 3. 预警信息（从sys_alert表读取）
+    try {
+      const ar = await fetch('/api/v1/xiyi/alerts?limit=10').then(r=>r.json());
+      if (ar.code === 0) {
+        const alerts = ar.data.alerts || [];
+        const unread = ar.data.unread_count || 0;
+        document.getElementById('alertPanel').innerHTML = 
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-muted)">实时动态</span><span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(239,68,68,0.12);color:var(--color-defect);font-weight:600">' + unread + '条未处理</span></div>' +
+          alerts.slice(0, 3).map(function(a){
+            var icon = a.alert_level === 'danger' ? '🔴' : a.alert_level === 'warning' ? '🟡' : '🔵';
+            var color = a.alert_level === 'danger' ? 'var(--color-defect)' : a.alert_level === 'warning' ? 'var(--color-warning)' : 'var(--color-hold)';
+            return '<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid rgba(30,45,74,0.2)"><div style="font-size:14px;flex-shrink:0;margin-top:1px">' + icon + '</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:' + color + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + a.alert_title + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">' + (a.alert_content||'').slice(0,50) + (a.alert_content.length>50?'...':'') + '</div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">' + a.created_at + ' <span style="float:right">' + (a.status === 'pending' ? '<span class="sb" style="background:rgba(239,68,68,0.12);color:var(--color-defect)">待处理</span>' : a.status === 'processing' ? '<span class="sb" style="background:rgba(245,158,11,0.12);color:var(--color-warning)">处理中</span>' : '') + '</span></div></div></div>';
+          }).join('') +
+          (alerts.length > 3 ? '<div style="padding:6px 0;text-align:center"><a href="/xiyi-alerts.html" style="font-size:11px;color:var(--color-hold);text-decoration:none">查看全部' + alerts.length + '条预警 →</a></div>' : '');
+      }
+    } catch(e) {
+      document.getElementById('alertPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无预警</div>';
+    }
+    // 4. 任务
     document.getElementById('taskPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无待办</div>';
-    document.getElementById('newsPanel').innerHTML = '<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text-secondary)">\u{1F9E0} AI\u5206\u6790\u5DF2\u6267\u884c 3 \u6B21</div><div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text-secondary)">\u{1F4CA} \u7CFB\u7EDF\u8FD0\u884C 7 \u5929</div><div style="font-size:12px;padding:5px 0;color:var(--text-secondary)">\u2699\uFE0F 16\u6761\u89C4\u5219</div>';
+    // 5. 新闻
     badge.textContent = '\u2705 \u5DF2\u8FDE\u63A5';
   } catch(e) {
     badge.textContent = '\u274C ' + e.message;
