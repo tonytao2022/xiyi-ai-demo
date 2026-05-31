@@ -106,7 +106,7 @@ async function init() {
 
     // 加载KPI数据填充步骤1
     await loadStep1Data();
-    document.getElementById('loadingMsg').style.display = 'none';
+    if(document.getElementById("loadingMsg")) document.getElementById("loadingMsg").style.display = "none";
 
     // 如果有traceId，自动触发AI分析
     if (_traceId) {
