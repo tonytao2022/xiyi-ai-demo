@@ -73,7 +73,7 @@ var H = '';
 
 // 三栏核心数据
 H += '<div class="triple">' +
-  '<div class="st"><div class="l">当前值</div><div class="v" style="color:' + defColor + '">' + kpiVal + kpiUnit + '</div><div class="t">环比 +5%</div></div>' +
+  '<div class="st"><div class="l">当前值</div><div class="v" style="color:' + defColor + '">' + (kpiVal.indexOf('%') >= 0 ? kpiVal : kpiVal + kpiUnit) + '</div><div class="t">环比 +5%</div></div>' +
   '<div class="st"><div class="l">目标值</div><div class="v" style="color:var(--green)">' + (kpiTarget.indexOf('%') >= 0 ? kpiTarget : kpiTarget + kpiUnit) + '</div><div class="t">目标：无波动</div></div>' +
   '<div class="st"><div class="l">设备异常分布</div><div class="v" style="font-size:22px">2#烧结炉</div><div class="t" style="color:var(--red)">贡献 85% 不合格</div></div>' +
 '</div>';
