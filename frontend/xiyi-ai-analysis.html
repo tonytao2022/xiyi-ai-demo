@@ -121,48 +121,43 @@ async function init() {
   }
 }
 
-// 加载已有trace
-async function loadExistingTrace() {
-  document.getElementById('loadingText').textContent = '正在加载AI分析报告...';
-  try {
-    var tr = await fetch(API + '/analysis/trace/' + _traceId).then(function(r){return r.json();});
-    if (tr.code === 0) {
-      var task = tr.data.task || {};
+// 加载已有trace (轮询模式)
+function loadExistingTrace() {
+  document.getElementById('loadingText').innerHTML = getProgressHTML('正在查询已有分析结果...', 5);
+  fetch(API + '/analysis/trace/' + _traceId)
+  .then(function(r){return r.json();})
+  .then(function(resp){
+    if (resp.code === 0) {
+      var task = resp.data.task || {};
+      var status = task.status || '';
       var result = task.result || '';
       if (typeof result === 'string') { try { result = JSON.parse(result); } catch(e) {} }
-      if (result && result.ai_analysis) {
+      
+      if (status === 'done' && result && result.ai_analysis) {
+        // 已有完成结果
         showResult(result, _traceId);
+        return;
+      } else if (status === 'error') {
+        // 之前分析失败,重新分析
+        startNewAnalysis();
         return;
       }
     }
-    // 没找到结果或还在处理,重新分析
+    // 结果还在处理或未找到,进入轮询等待
+    pollTrace();
+  })
+  .catch(function(){
+    // 连不上也重新发起
     startNewAnalysis();
-  } catch(e) {
-    startNewAnalysis();
-  }
+  });
 }
 
-// 发起新分析
+// 发起新分析 - 异步轮询模式
 function startNewAnalysis() {
   _traceId = 'ai_' + Date.now() + '_' + _sceneId;
-  document.getElementById('loadingText').textContent = '🧠 AI智能体正在分析' + (_sceneName || '场景' + _sceneId) + '的品质数据...';
-  
-  // 30秒超时保护
-  var timeoutTimer = setTimeout(function(){
-    document.getElementById('loadingText').textContent = '⏳ AI分析耗时较长，请继续等待...（超过60秒将自动显示当前结果）';
-  }, 30000);
-  var timeoutFallback = setTimeout(function(){
-    document.getElementById('loadingArea').style.display = 'none';
-    document.getElementById('resultArea').style.display = '';
-    document.getElementById('bannerIcon').textContent = '⏳';
-    document.getElementById('bannerTitle').textContent = 'AI分析仍在处理中';
-    document.getElementById('bannerSub').textContent = 'AI分析耗时超过预期，但仍在后台运行。请稍后刷新查看结果，或重新发起分析。';
-    document.getElementById('banner').style.borderColor = 'var(--color-warning)';
-    document.getElementById('metaGrid').innerHTML = '<div class="meta-item" style="grid-column:1/-1"><div class="lbl">Trace ID</div><div class="val" style="font-size:11px;color:var(--text-muted)">' + _traceId + '</div></div>';
-    document.getElementById('aiReportContent').innerHTML = '<div style="text-align:center;padding:30px"><div style="font-size:40px;margin-bottom:12px">⏳</div><div style="color:var(--text-muted)">AI分析仍在后台运行中，请稍后刷新页面查看结果。</div><div style="margin-top:16px"><button class="btn btn-primary" onclick="location.reload()">🔄 刷新</button></div></div>';
-    document.getElementById('btnRefresh').style.display = 'inline-flex';
-  }, 120000);
+  pollTrace();
 
+  // 先立即发起分析请求(不等待结果,由轮询获取)
   fetch(API + '/analysis/ai-run', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -175,25 +170,83 @@ function startNewAnalysis() {
   })
   .then(function(r){return r.json();})
   .then(function(resp){
-    clearTimeout(timeoutTimer);
-    clearTimeout(timeoutFallback);
-    if (resp.code === 0) {
-      var report = resp.data.report || {};
-      showResult(report, _traceId);
-      // 更新URL带上traceId(不刷新页面)
-      var url = new URL(location.href);
-      url.searchParams.set('trace', _traceId);
-      history.replaceState(null, '', url);
-    } else {
-      showError(resp.error || '分析请求失败');
+    if (resp.code !== 0) {
+      // 启动失败显示错误
+      showError('AI分析启动失败: ' + (resp.error || '未知错误'));
     }
   })
   .catch(function(e){
-    clearTimeout(timeoutTimer);
-    clearTimeout(timeoutFallback);
     showError('网络请求异常: ' + e.message);
   });
 }
+
+// 轮询trace进度
+var _pollTimer = null;
+var _pollCount = 0;
+var POLL_INTERVAL = 2500;
+
+function pollTrace() {
+  if (!_traceId) return;
+  _pollCount++;
+  
+  fetch(API + '/analysis/trace/' + _traceId)
+  .then(function(r){return r.json();})
+  .then(function(resp){
+    if (resp.code === 0) {
+      var task = resp.data.task || {};
+      var status = task.status || '';
+      var inputParams = task.input_params || '';
+      if (typeof inputParams === 'string') { try { inputParams = JSON.parse(inputParams); } catch(e) {} }
+      
+      var step = (inputParams && inputParams.step) || '';
+      var progress = (inputParams && inputParams.progress) || '';
+      var pct = (inputParams && inputParams.pct) || 0;
+      
+      // 更新进度显示
+      if (progress) {
+        var barW = pct > 0 ? pct : Math.min(_pollCount * 8, 80);
+        var dots = '.'.repeat(_pollCount % 4);
+        document.getElementById('loadingText').innerHTML = getProgressHTML(progress, barW);
+      }
+      
+      if (status === 'done') {
+        // 分析完成,获取结果
+        var result = task.result || '';
+        if (typeof result === 'string') { try { result = JSON.parse(result); } catch(e) {} }
+        if (result && result.ai_analysis) {
+          showResult(result, _traceId);
+          var url = new URL(location.href);
+          url.searchParams.set('trace', _traceId);
+          history.replaceState(null, '', url);
+          return;
+        }
+      } else if (status === 'error') {
+        showError('AI分析执行异常,请重试');
+        return;
+      }
+    }
+    // 继续轮询
+    if (_pollCount < 120) {  // 最多轮询5分钟
+      _pollTimer = setTimeout(pollTrace, POLL_INTERVAL);
+    } else {
+      showError('AI分析超时,请刷新重试');
+    }
+  })
+  .catch(function(e){
+    // 轮询失败继续重试
+    _pollTimer = setTimeout(pollTrace, POLL_INTERVAL);
+  });
+}
+
+// 进度HTML
+function getProgressHTML(msg, pct) {
+  pct = Math.min(pct, 95);
+  var bars = '';
+  for (var i = 0; i < 20; i++) {
+    bars += '<div style="width:8px;height:8px;border-radius:2px;display:inline-block;margin:0 1px;background:' + (i < pct/5 ? 'var(--color-hold)' : 'var(--border-color)') + '"></div>';
+  }
+  return '<div style="margin-bottom:8px">🧠 ' + msg + '</div>' +
+    '<div>' + bars + ' <span style="font-size:11px;color:var(--text-muted)">' + pct + '%</span></div>';
 
 // 展示结果
 function showResult(report, traceId) {

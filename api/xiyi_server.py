@@ -541,66 +541,66 @@ def evaluate_rules():
 @app.route('/api/v1/xiyi/analysis/ai-run', methods=['POST'])
 @api_handler
 def ai_analysis_run():
-    """AI分析入口 - Skill封装唯一入口
-    
-    Antony P0-1: 只在检测到异常指标时创建CAPA方案,常规分析不创建
-    Tony P0-5: subprocess增加timeout和僵尸进程清理
-    """
+    """AI分析入口 - 异步模式：立即返回trace_id,后台线程执行openclaw分析"""
+    import threading, subprocess
     data = request.get_json()
     trace_id = data.get('trace_id', '')
     scene_id = data.get('scene_id', 1)
     input_data = data.get('input_data', {})
     user_prompt = data.get('prompt', '')
-
     if not trace_id:
-        import uuid
-        trace_id = str(uuid.uuid4())
+        import uuid; trace_id = str(uuid.uuid4())
 
     with get_cursor() as cur:
         cur.execute("SELECT scene_name, scene_code FROM ap_scene_config WHERE id=%s", (scene_id,))
         scene = cur.fetchone()
         scene_name = scene['scene_name'] if scene else '未知场景'
+        _params = (trace_id, scene_id, f'quality_{scene_id}',
+            json.dumps({'scene_name': scene_name, 'step': 'init', 'progress': '初始化分析...', 'pct': 0}), 'running')
+        cur.execute("INSERT INTO ag_agent_task (trace_id,scene_id,skill_name,input_params,status,started_at) VALUES (%s,%s,%s,%s,%s,NOW())", _params)
 
-        # 创建Agent任务记录
-        _params = (trace_id, scene_id, f'quality_{scene_id}', json.dumps({'scene_name': scene_name}), 'running')
-        _sql = "INSERT INTO ag_agent_task (trace_id,scene_id,skill_name,input_params,status,started_at) VALUES (%s,%s,%s,%s,%s,NOW())"
-        cur.execute(_sql, _params)
-
-        # 1. 查指标数据
-        metrics_result = {}
-        cur.execute("SELECT indicator_code, indicator_name FROM dg_indicator_atom ORDER BY id")
-        for ind in cur.fetchall():
-            cur.execute("SELECT data_json FROM ds_mock_data WHERE scene_id=%s ORDER BY mock_date DESC LIMIT 1", (scene_id,))
-            row = cur.fetchone()
-            if row:
-                try:
-                    d = json.loads(row['data_json'])
-                    metrics_result[ind['indicator_code']] = d
-                except:
-                    pass
-
-        # 2. 记录工具调用日志
-        cur.execute("""INSERT INTO ag_tool_call_log (trace_id, parent_span_id, tool_name, input_params, output_result, status)
-            VALUES (%s, %s, %s, %s, %s, %s)""",
-            (trace_id, 'span_root', 'metrics_query',
-             json.dumps({'indicator_code': 'FPY_RATE', 'scene_id': scene_id}),
-             json.dumps(metrics_result), 'ok'))
-
-        # 3. 调用OpenClaw执行AI推理
-        import subprocess
-        _metrics_summary = '\n'.join([f"{k}: {v}" for k, v in metrics_result.items()])
-        _prompt = f"""你是一位制造企业品质专员助理。请分析以下品质数据：\n\n场景：{scene_name}\n指标数据：{_metrics_summary}\n\n请输出：\n1. 当前品质状况评估\n2. 异常指标识别\n3. 建议的4M1E排查方向\n4. 下一步行动计划\n\n请以结构化方式输出。"""
+    def _update_progress(step, msg, pct=0):
         try:
+            with get_cursor() as cur2:
+                cur2.execute("SELECT input_params FROM ag_agent_task WHERE trace_id=%s", (trace_id,))
+                row = cur2.fetchone()
+                params = json.loads(row['input_params']) if row else {}
+                params['step'] = step
+                params['progress'] = msg
+                params['pct'] = pct
+                cur2.execute("UPDATE ag_agent_task SET input_params=%s WHERE trace_id=%s", (json.dumps(params), trace_id))
+        except Exception as e:
+            logger.warning("progress update error: %s", e)
+
+    def _run():
+        nonlocal trace_id, scene_id, scene_name
+        _ai_response = ''
+        try:
+            _update_progress('fetch_metrics', '正在查询场景指标数据...', 10)
+            with get_cursor() as cur:
+                metrics_result = {}
+                cur.execute("SELECT indicator_code, indicator_name FROM dg_indicator_atom ORDER BY id")
+                for ind in cur.fetchall():
+                    cur.execute("SELECT data_json FROM ds_mock_data WHERE scene_id=%s ORDER BY mock_date DESC LIMIT 1", (scene_id,))
+                    row = cur.fetchone()
+                    if row:
+                        try:
+                            d = json.loads(row['data_json'])
+                            metrics_result[ind['indicator_code']] = d
+                        except: pass
+                _update_progress('metrics_ready', f'指标数据已就绪({len(metrics_result)}个)', 25)
+
+            _update_progress('calling_llm', '正在调用AI大模型进行分析(约10-30秒)...', 30)
+            _metrics_summary = '\n'.join([f"{k}: {v}" for k, v in metrics_result.items()])
+            _prompt = f"你是一位制造企业品质专员助理。请分析以下品质数据：\n\n场景：{scene_name}\n指标数据：{_metrics_summary}\n\n请输出：\n1. 当前品质状况评估\n2. 异常指标识别\n3. 建议的4M1E排查方向\n4. 下一步行动计划\n\n请以结构化方式输出。"
             _result = subprocess.run(
                 ['openclaw', 'agent', '-m', _prompt, '--agent', 'main', '--json'],
-                capture_output=True, text=True, timeout=120
+                capture_output=True, text=True, timeout=180
             )
+            _update_progress('parsing', '正在解析AI返回结果...', 70)
             _output = _result.stdout.strip()
-            _stderr = _result.stderr.strip()
-            _ai_response = ''
             if _output:
                 try:
-                    # 可能包含换行分隔的多行JSON流，只取最后一行（完成态）
                     _lines = _output.strip().split('\n')
                     _last_line = _lines[-1] if len(_lines) > 1 else _output
                     _json_out = json.loads(_last_line)
@@ -616,50 +616,39 @@ def ai_analysis_run():
                     except:
                         _ai_response = _output[:2000]
             if not _ai_response:
-                _ai_response = '本次AI分析未返回文本结果，请稍后重试。\n提示：' + (_prompt[:100] if _prompt else '')
+                _ai_response = '本次AI分析未返回文本结果。'
+
+            _update_progress('analyzing', '正在整理分析报告...', 85)
+            _has_alarm = ('异常' in _ai_response or '预警' in _ai_response or '超标' in _ai_response or '不合格' in _ai_response)
+            for _k, _v in metrics_result.items():
+                if isinstance(_v, dict):
+                    for _sk, _sv in _v.items():
+                        if isinstance(_sv, (int, float)) and _sv < 95.0:
+                            _has_alarm = True
+            report = {
+                'trace_id': trace_id, 'scene_id': scene_id, 'scene_name': scene_name,
+                'metrics': metrics_result, 'ai_analysis': _ai_response,
+                'has_alarm': _has_alarm, 'hit_count': 0, 'max_severity': 'info',
+            }
+            with get_cursor() as cur:
+                cur.execute("UPDATE ag_agent_task SET status='done', result=%s, completed_at=NOW() WHERE trace_id=%s",
+                    (json.dumps(report), trace_id))
         except subprocess.TimeoutExpired:
-            _ai_response = 'AI推理超时(60s)，请重试或检查openclaw状态'
-            logger.warning("AI analysis timeout for trace_id=%s scene_id=%s", trace_id, scene_id)
+            with get_cursor() as cur:
+                cur.execute("UPDATE ag_agent_task SET status='error', result='{\"error\":\"timeout\"}' WHERE trace_id=%s", (trace_id,))
         except Exception as _e:
-            _ai_response = f'AI推理异常: {str(_e)}'
             logger.error("AI analysis error: %s", _e)
+            with get_cursor() as cur:
+                cur.execute("UPDATE ag_agent_task SET status='error', result=%s WHERE trace_id=%s",
+                    (json.dumps({'error': str(_e)}), trace_id))
 
-        # 4. 判断是否检测到异常 (Antony P0-1: 只在真正有异常时创建CAPA)
-        _has_alarm = ('异常' in _ai_response or '预警' in _ai_response
-                       or '超标' in _ai_response or '不合格' in _ai_response)
-        # 还检查指标值是否超阈值
-        for _k, _v in metrics_result.items():
-            if isinstance(_v, dict):
-                for _sk, _sv in _v.items():
-                    if isinstance(_sv, (int, float)) and _sv < 95.0:
-                        _has_alarm = True
-
-        # 5. 生成报告
-        report = {
-            'trace_id': trace_id,
-            'scene_id': scene_id,
-            'scene_name': scene_name,
-            'metrics': metrics_result,
-            'ai_analysis': _ai_response,
-            'has_alarm': _has_alarm,
-            'hit_count': 0,
-            'max_severity': 'info',
-        }
-
-        cur.execute("UPDATE ag_agent_task SET status='done', result=%s, completed_at=NOW() WHERE trace_id=%s",
-                (json.dumps(report), trace_id))
-
-        # 纯分析模式: 不再自动创建CAPA方案,仅在报告中带回trace_id供前端跳转展示
-        report['message'] = 'AI分析已完成' if not _has_alarm else 'AI分析已完成,检测到异常指标,请查看报告详情'
-
-        return api_success({
-            'trace_id': trace_id,
-            'scene_id': scene_id,
-            'scene_name': scene_name,
-            'skill': f'quality_{scene_id}',
-            'metrics_summary': str(len(metrics_result)) + '个指标',
-            'report': report
-        })
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    return api_success({
+        'trace_id': trace_id, 'scene_id': scene_id, 'scene_name': scene_name,
+        'status': 'running',
+        'message': 'AI分析已启动，将通过trace接口查询进度'
+    })
 
 
 @app.route('/api/v1/xiyi/analysis/trace/<trace_id>', methods=['GET'])
