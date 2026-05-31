@@ -361,6 +361,8 @@ function showKpiDetail(idx) {
     window.location.href = '/xiyi-kpi-fpy-detail.html';  // FPY独立详情页
   } else if (kname.indexOf('磁物检验') >= 0) {
     window.location.href = '/xiyi-kpi-mag-detail.html';  // 磁物独立详情页
+  } else if (kname.indexOf('异常料') >= 0) {
+    window.location.href = '/xiyi-kpi-abnormal-detail.html';  // 异常料独立详情页
   } else {
     window.location.href = '/xiyi-kpi-detail.html?name=' + encodeURIComponent(k.name) + '&value=' + encodeURIComponent(k.value) + '&target=' + encodeURIComponent(k.target) + '&unit=' + encodeURIComponent(k.unit||'') + '&level=' + encodeURIComponent(k.level||'success') + '&idx=' + idx;
   }
