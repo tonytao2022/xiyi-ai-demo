@@ -94,13 +94,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <span class="icon">📐</span> 数据标准
       </div>
       <div style="border-top:1px solid var(--border-color);margin:12px 20px 0;"></div>
-      <div class="nav-item" onclick="window.location.href = '/xiyi-config-console.html','_self')" style="font-size:12px">
+      <div class="nav-item" onclick="window.location.href='/xiyi-config-console.html'" style="font-size:12px">
         <span class="icon">⚙️</span> 系统配置
       </div>
-      <div class="nav-item" onclick="window.location.href = '/xiyi-capa-manager.html','_self')" style="font-size:12px">
+      <div class="nav-item" onclick="window.location.href='/xiyi-capa-manager.html'" style="font-size:12px">
         <span class="icon">🔄</span> CAPA管理
       </div>
-      <div class="nav-item" onclick="window.location.href = '/xiyi-index.html','_self')" style="font-size:12px">
+      <div class="nav-item" onclick="window.location.href='/xiyi-index.html'" style="font-size:12px">
         <span class="icon">↩</span> 返回首页
       </div>
     </nav>
@@ -124,8 +124,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
     <div id="pageDashboard">
       <!-- 第一行：核心指标（含阈值） -->
       <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:15px;font-weight:600;color:var(--text)">📊 我的核心指标</span>
-        <span style="font-size:11px;color:var(--muted)">6项</span>
+        <span style="font-size:15px;font-weight:600;color:var(--text-primary)">📊 我的核心指标</span>
+        <span style="font-size:11px;color:var(--text-muted)">6项</span>
       </div>
       <div class="kpi-grid" id="realtimeKpiGrid"><div style="color:var(--text-muted);padding:20px">加载实时KPI...</div></div>
 
@@ -134,7 +134,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
         <!-- 左侧：工作场景 -->
         <div style="flex:1;min-width:0">
           <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:15px;font-weight:600;color:var(--text)">📋 我的工作场景</span>
+            <span style="font-size:15px;font-weight:600;color:var(--text-primary)">📋 我的工作场景</span>
             <a href="/xiyi-scenes-manager.html" class="btn btn-outline" style="padding:4px 12px;font-size:11px">查看全部 →</a>
           </div>
           <div class="scene-grid" id="sceneGrid"><div style="color:var(--text-muted);padding:20px">加载场景数据...</div></div>
@@ -146,21 +146,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
           <div class="card" style="margin-bottom:12px">
             <div class="card-header" style="font-size:13px;padding:10px 14px">🔔 实时动态与预警</div>
             <div class="card-body" style="padding:10px 14px" id="alertPanel">
-              <div style="font-size:12px;color:var(--muted)">加载预警信息...</div>
+              <div style="font-size:12px;color:var(--text-muted)">加载预警信息...</div>
             </div>
           </div>
           <!-- 我的任务 -->
           <div class="card" style="margin-bottom:12px">
             <div class="card-header" style="font-size:13px;padding:10px 14px">📝 我的任务</div>
             <div class="card-body" style="padding:10px 14px" id="taskPanel">
-              <div style="font-size:12px;color:var(--muted)">加载任务列表...</div>
+              <div style="font-size:12px;color:var(--text-muted)">加载任务列表...</div>
             </div>
           </div>
           <!-- 智能体新闻 -->
           <div class="card">
             <div class="card-header" style="font-size:13px;padding:10px 14px">🤖 智能体新闻</div>
             <div class="card-body" style="padding:10px 14px" id="newsPanel">
-              <div style="font-size:12px;color:var(--muted)">加载动态...</div>
+              <div style="font-size:12px;color:var(--text-muted)">加载动态...</div>
             </div>
           </div>
         </div>
@@ -286,9 +286,9 @@ async function loadAll() {
       ).join('');
     }
     // 3. 右侧面板
-    document.getElementById('alertPanel').innerHTML = '<div style="font-size:12px;color:var(--muted)">暂无预警</div>';
-    document.getElementById('taskPanel').innerHTML = '<div style="font-size:12px;color:var(--muted)">暂无待办</div>';
-    document.getElementById('newsPanel').innerHTML = '<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">\u{1F9E0} AI\u5206\u6790\u5DF2\u6267\u884c 3 \u6B21</div><div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text2)">\u{1F4CA} \u7CFB\u7EDF\u8FD0\u884C 7 \u5929</div><div style="font-size:12px;padding:5px 0;color:var(--text2)">\u2699\uFE0F 16\u6761\u89C4\u5219</div>';
+    document.getElementById('alertPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无预警</div>';
+    document.getElementById('taskPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无待办</div>';
+    document.getElementById('newsPanel').innerHTML = '<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text-secondary)">\u{1F9E0} AI\u5206\u6790\u5DF2\u6267\u884c 3 \u6B21</div><div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border-light);color:var(--text-secondary)">\u{1F4CA} \u7CFB\u7EDF\u8FD0\u884C 7 \u5929</div><div style="font-size:12px;padding:5px 0;color:var(--text-secondary)">\u2699\uFE0F 16\u6761\u89C4\u5219</div>';
     badge.textContent = '\u2705 \u5DF2\u8FDE\u63A5';
   } catch(e) {
     badge.textContent = '\u274C ' + e.message;
@@ -300,8 +300,47 @@ async function loadAll() {
 <script>
 var _kpiDetailList = [];
 loadAll();
-// 从mock/kpi加载KPI列表供详情弹窗使用
 
+// ─── 新增: aiAnalyze 函数 (Antony P0-4) ───
+function aiAnalyze(sceneId, sceneName) {
+  const traceId = 'ai_' + Date.now() + '_' + sceneId;
+  const btn = event && event.target ? event.target : null;
+  if (btn) { btn.textContent = '⏳ AI分析中...'; btn.disabled = true; }
+  
+  fetch('/api/v1/xiyi/analysis/ai-run', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      trace_id: traceId,
+      scene_id: parseInt(sceneId) || 1,
+      input_data: {},
+      prompt: '请对"' + (sceneName || '场景' + sceneId) + '"进行全面品质分析'
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(resp) {
+    if (resp.code === 0) {
+      var report = resp.data.report || {};
+      var msg = '✅ AI分析完成！';
+      if (report.has_alarm) {
+        msg += ' 发现异常指标，已自动创建CAPA方案。';
+      } else {
+        msg += ' 未检测到异常。';
+      }
+      alert(msg);
+      // 跳转到诊断页查看详情
+      window.location.href = '/xiyi-diagnose.html?scene=' + sceneId + '&trace=' + traceId;
+    } else {
+      alert('❌ AI分析失败: ' + (resp.error || '未知错误'));
+    }
+  })
+  .catch(function(e) {
+    alert('❌ AI分析请求异常: ' + e.message);
+  })
+  .finally(function() {
+    if (btn) { btn.textContent = '🧠 AI分析'; btn.disabled = false; }
+  });
+}
 
 // 指标详情弹窗
 function showKpiDetail(idx) {

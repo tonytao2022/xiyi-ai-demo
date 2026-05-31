@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>指标详情 · 兮易AI大脑</title>
 <style>
-:root{--bg:#0a0e17;--bg2:#111827;--card:#161d2a;--border:#1e2d4a;--text:#e2e8f0;--text2:#94a3b8;--muted:#64748b;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#8b5cf6;--radius:8px;--lg:12px}
+:root{--bg-primary:#0a0e17;--bg-secondary:#111827;--bg-card:#161d2a;--border-color:#1e2d4a;--text-primary:#e2e8f0;--text-secondary:#94a3b8;--text-muted:#64748b;--color-hold:#3b82f6;--color-bear:#22c55e;--color-defect:#ef4444;--color-warning:#f59e0b;--color-safety:#8b5cf6;--radius:8px;--radius-lg:12px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:20px;min-height:100vh}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
 .header h1{font-size:20px;color:#fff}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--lg);padding:16px;margin-bottom:16px}
+.card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--lg);padding:16px;margin-bottom:16px}
 .triple{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
-.stat{background:var(--bg2);border-radius:var(--radius);padding:14px;text-align:center}
-.stat .l{font-size:12px;color:var(--muted);margin-bottom:4px}
+.stat{background:var(--bg-secondary);border-radius:var(--radius);padding:14px;text-align:center}
+.stat .l{font-size:12px;color:var(--text-muted);margin-bottom:4px}
 .stat .v{font-size:24px;font-weight:700}
-.stat .t{font-size:11px;color:var(--muted);margin-top:2px}
+.stat .t{font-size:11px;color:var(--text-muted);margin-top:2px}
 .chart{padding:12px 0}
 .chart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
-.chart .bar .val{font-size:10px;color:var(--muted)}
-.chart .bar .col{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(to top, var(--blue), rgba(59,130,246,0.3))}
-.chart .bar .w{font-size:10px;color:var(--muted)}
+.chart .bar .val{font-size:10px;color:var(--text-muted)}
+.chart .bar .col{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(to top, var(--color-hold), rgba(59,130,246,0.3))}
+.chart .bar .w{font-size:10px;color:var(--text-muted)}
 .dims{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.dims .item{padding:6px 10px;background:var(--bg2);border-radius:var(--radius);font-size:13px;color:var(--text2)}
-.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:var(--radius);font-size:12px;cursor:pointer;text-decoration:none;border:1px solid var(--border);color:var(--text2);background:transparent}
-.btn:hover{border-color:var(--blue);color:var(--blue)}
+.dims .item{padding:6px 10px;background:var(--bg-secondary);border-radius:var(--radius);font-size:13px;color:var(--text-secondary)}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:var(--radius);font-size:12px;cursor:pointer;text-decoration:none;border:1px solid var(--border-color);color:var(--text-secondary);background:transparent}
+.btn:hover{border-color:var(--color-hold);color:var(--color-hold)}
 </style>
 </head>
 <body>
@@ -38,7 +38,7 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
   </div>
 </div>
 
-<div id="content" style="color:var(--muted);padding:20px">加载中...</div>
+<div id="content" style="color:var(--text-muted);padding:20px">加载中...</div>
 
 <script>
 (function() {
@@ -52,7 +52,7 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
 
   document.getElementById('kpiTitle').textContent = '📊 ' + name;
 
-  var clr = level === 'danger' ? 'var(--red)' : level === 'warning' ? 'var(--yellow)' : 'var(--green)';
+  var clr = level === 'danger' ? 'var(--color-defect)' : level === 'warning' ? 'var(--color-warning)' : 'var(--color-bear)';
 
   // 模拟12周趋势数据
   var weeks = ['W31','W32','W33','W34','W35','W36','W37','W38','W39','W40','W41','W42'];
@@ -71,19 +71,19 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
   }
   var svgPath = 'M' + points.map(function(p){return p.x + ',' + p.y}).join(' L');
   var svgDots = points.map(function(p){
-    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="var(--blue)" stroke="#fff" stroke-width="2"/>';
+    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="var(--color-hold)" stroke="#fff" stroke-width="2"/>';
   }).join('');
   var svgLabels = points.map(function(p){
-    return '<text x="' + p.x + '" y="130" text-anchor="middle" fill="var(--muted)" font-size="10">' + p.w + '</text>';
+    return '<text x="' + p.x + '" y="130" text-anchor="middle" fill="var(--text-muted)" font-size="10">' + p.w + '</text>';
   }).join('');
   var svgValues = points.map(function(p){
-    return '<text x="' + p.x + '" y="' + (p.y-8) + '" text-anchor="middle" fill="var(--text2)" font-size="10">' + p.v + '</text>';
+    return '<text x="' + p.x + '" y="' + (p.y-8) + '" text-anchor="middle" fill="var(--text-secondary)" font-size="10">' + p.v + '</text>';
   }).join('');
 
   var lineChart = '<svg width="660" height="140" xmlns="http://www.w3.org/2000/svg">' +
-    '<path d="' + svgPath + '" stroke="var(--blue)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>' +
-    '<path d="' + svgPath + '" stroke="var(--blue)" stroke-width="0.5" fill="url(#grad)" opacity="0.15"/>' +
-    '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--blue)"/><stop offset="100%" stop-color="var(--blue)" stop-opacity="0"/></linearGradient></defs>' +
+    '<path d="' + svgPath + '" stroke="var(--color-hold)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>' +
+    '<path d="' + svgPath + '" stroke="var(--color-hold)" stroke-width="0.5" fill="url(#grad)" opacity="0.15"/>' +
+    '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--color-hold)"/><stop offset="100%" stop-color="var(--color-hold)" stop-opacity="0"/></linearGradient></defs>' +
     svgValues + svgDots + svgLabels +
     '</svg>';
 
@@ -109,12 +109,12 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
   var curNum = parseFloat(value) || 0;
   var tgtNum = parseFloat(String(target).replace(/[^0-9.]/g,'')) || 0;
   var devVal = curNum - tgtNum;
-  var devClr = devVal >= 0 ? 'var(--green)' : 'var(--red)';
+  var devClr = devVal >= 0 ? 'var(--color-bear)' : 'var(--color-defect)';
   html += '<div class="stat"><div class="l">偏差值</div><div class="v" style="color:' + devClr + ';font-size:20px">' + (devVal >= 0 ? '+' : '') + devVal.toFixed(2) + '%</div></div>';
   html += '</div>';
 
   // 指标定义
-  html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:4px">指标定义</div><div style="font-size:13px;color:var(--text2)">' + desc + '</div></div>';
+  html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:4px">指标定义</div><div style="font-size:13px;color:var(--text-secondary)">' + desc + '</div></div>';
 
   // 历史趋势
   html += '<div class="card"><div style="font-size:13px;font-weight:600;margin-bottom:8px">历史趋势（近12周）</div><div class="chart">' + lineChart + '</div></div>';
