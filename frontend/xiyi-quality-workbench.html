@@ -336,6 +336,8 @@ function fullSceneAnalyze(sceneId, sceneName) {
   // 场景2使用独立页面(磁物健康),其他场景共用页面
   if (sceneId == 2) {
     window.location.href = '/xiyi-full-scene-2.html?scene=' + sceneId + '&name=' + encodeURIComponent(sceneName || '');
+  } else if (sceneId == 3) {
+    window.location.href = '/xiyi-full-scene-3.html?scene=' + sceneId + '&name=' + encodeURIComponent(sceneName || '');
   } else {
     window.location.href = '/xiyi-full-scene.html?scene=' + sceneId + '&name=' + encodeURIComponent(sceneName || '');
   }
