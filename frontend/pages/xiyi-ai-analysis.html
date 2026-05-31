@@ -177,44 +177,44 @@ function startNewAnalysis() {
 
 // 展示结果
 function showResult(report, traceId) {
-  document.getElementById('loadingArea').style.display = 'none';
-  document.getElementById('resultArea').style.display = '';
-  document.getElementById('btnRefresh').style.display = '';
+  try {
+  var ids=['loadingArea','resultArea','btnRefresh','bannerIcon','bannerTitle','bannerSub','banner','metaTime','metaGrid','reportId','aiReportContent','metricsCard','metricsTable'];
+  var els={};ids.forEach(function(id){els[id]=document.getElementById(id);});
+  if(!els.loadingArea||!els.resultArea||!els.banner) return;
+  
+  els.loadingArea.style.display='none';
+  els.resultArea.style.display='';
+  if(els.btnRefresh)els.btnRefresh.style.display='';
 
-  var aiText = report.ai_analysis || 'AI未返回分析结果';
-  var hasAlarm = report.has_alarm || false;
-  var metrics = report.metrics || {};
-  var sceneName = report.scene_name || _sceneName;
+  var aiText = (report && report.ai_analysis) || 'AI未返回分析结果';
+  var hasAlarm = (report && report.has_alarm) || false;
+  var metrics = (report && report.metrics) || {};
+  var sceneName = (report && report.scene_name) || _sceneName;
 
-  // banner
-  document.getElementById('bannerIcon').textContent = hasAlarm ? '⚠️' : '✅';
-  document.getElementById('bannerTitle').textContent = hasAlarm ? 'AI分析完成 · 检测到异常指标' : 'AI分析完成 · 品质状况良好';
-  document.getElementById('bannerSub').textContent = '场景: ' + sceneName + ' | trace: ' + traceId;
-  document.getElementById('banner').style.borderColor = hasAlarm ? 'var(--color-warning)' : 'var(--color-bear)';
+  els.bannerIcon.textContent = hasAlarm ? '⚠️' : '✅';
+  els.bannerTitle.textContent = hasAlarm ? 'AI分析完成 · 检测到异常指标' : 'AI分析完成 · 品质状况良好';
+  els.bannerSub.textContent = '场景: ' + sceneName + ' | trace: ' + traceId;
+  els.banner.style.borderColor = hasAlarm ? 'var(--color-warning)' : 'var(--color-bear)';
 
-  // 元数据
-  document.getElementById('metaTime').textContent = '分析时间: ' + new Date().toLocaleString();
-  document.getElementById('metaGrid').innerHTML =
+  if(els.metaTime)els.metaTime.textContent = '分析时间: ' + new Date().toLocaleString();
+  if(els.metaGrid)els.metaGrid.innerHTML =
     '<div class="meta-item"><div class="lbl">场景名称</div><div class="val" style="color:var(--color-hold)">' + sceneName + '</div></div>' +
     '<div class="meta-item"><div class="lbl">分析结果</div><div class="val" style="color:' + (hasAlarm ? 'var(--color-warning)' : 'var(--color-bear)') + '">' + (hasAlarm ? '⚠️ 有异常' : '✅ 正常') + '</div></div>' +
     '<div class="meta-item"><div class="lbl">Trace ID</div><div class="val" style="font-size:11px;color:var(--text-muted)">' + traceId + '</div></div>' +
     '<div class="meta-item"><div class="lbl">指标数量</div><div class="val">' + Object.keys(metrics).length + ' 个</div></div>';
 
-  document.getElementById('reportId').textContent = '#' + traceId.slice(-8);
+  if(els.reportId)els.reportId.textContent = '#' + traceId.slice(-8);
+  if(els.aiReportContent)els.aiReportContent.innerHTML = formatAIReport(aiText);
 
-  // AI报告内容
-  document.getElementById('aiReportContent').innerHTML = formatAIReport(aiText);
-
-  // 指标数据
-  if (Object.keys(metrics).length > 0) {
-    document.getElementById('metricsCard').style.display = '';
-    document.getElementById('metricsTable').innerHTML =
-      '<tr><th style="padding:6px 8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);text-align:left;font-size:11px">指标代码</th><th style="padding:6px 8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);text-align:left;font-size:11px">数据</th></tr>' +
+  if (Object.keys(metrics).length > 0 && els.metricsCard && els.metricsTable) {
+    els.metricsCard.style.display = '';
+    els.metricsTable.innerHTML =
+      '<tr><th style="padding:6px 8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);text-align:left;font-size:11px">指标</th><th style="padding:6px 8px;border-bottom:2px solid var(--border-color);color:var(--text-muted);text-align:left;font-size:11px">值</th></tr>' +
       Object.entries(metrics).map(function(kv){
-        var val = JSON.stringify(kv[1]).slice(0, 80);
-        return '<tr><td style="padding:5px 8px;border-bottom:1px solid rgba(30,45,74,0.4);font-weight:500">' + kv[0] + '</td><td style="padding:5px 8px;border-bottom:1px solid rgba(30,45,74,0.4);color:var(--text-secondary);font-size:11px">' + val + '</td></tr>';
+        return '<tr><td style="padding:5px 8px;border-bottom:1px solid rgba(30,45,74,0.4);font-weight:500">' + kv[0] + '</td><td style="padding:5px 8px;border-bottom:1px solid rgba(30,45,74,0.4);color:var(--text-secondary);font-size:11px">' + JSON.stringify(kv[1]).slice(0,100) + '</td></tr>';
       }).join('');
   }
+  }catch(e){showError(e.message);}
 }
 
 function formatAIReport(text) {
@@ -238,15 +238,18 @@ function runAgain() { refreshAnalysis(); }
 
 // 显示错误
 function showError(msg) {
-  document.getElementById('loadingArea').style.display = 'none';
-  document.getElementById('resultArea').style.display = '';
-  document.getElementById('bannerIcon').textContent = '❌';
-  document.getElementById('bannerTitle').textContent = '分析失败';
-  document.getElementById('bannerSub').textContent = msg;
-  document.getElementById('banner').style.borderColor = 'var(--color-defect)';
-  document.getElementById('metaGrid').innerHTML = '<div class="meta-item" style="grid-column:1/-1"><div class="lbl">错误信息</div><div class="val" style="color:var(--color-defect)">' + msg + '</div></div>';
-  document.getElementById('aiReportContent').innerHTML = '<div style="color:var(--color-defect);text-align:center;padding:30px">❌ ' + msg + '</div>';
-  document.getElementById('btnRefresh').style.display = 'inline-flex';
+  try{
+  var g=function(id){return document.getElementById(id);};
+  var la=g('loadingArea');if(la)la.style.display='none';
+  var ra=g('resultArea');if(ra)ra.style.display='';
+  var bi=g('bannerIcon');if(bi)bi.textContent='❌';
+  var bt=g('bannerTitle');if(bt)bt.textContent='分析失败';
+  var bs=g('bannerSub');if(bs)bs.textContent=msg;
+  var b=g('banner');if(b)b.style.borderColor='var(--color-defect)';
+  var mg=g('metaGrid');if(mg)mg.innerHTML='<div class="meta-item" style="grid-column:1/-1"><div class="lbl">错误信息</div><div class="val" style="color:var(--color-defect)">'+msg+'</div></div>';
+  var ac=g('aiReportContent');if(ac)ac.innerHTML='<div style="color:var(--color-defect);text-align:center;padding:30px">❌ '+msg+'</div>';
+  var br=g('btnRefresh');if(br)br.style.display='inline-flex';
+  }catch(e){}
 }
 
 init();
