@@ -367,6 +367,8 @@ function showKpiDetail(idx) {
     window.location.href = '/xiyi-kpi-iqc-detail.html';  // IQC独立详情页
   } else if (kname.indexOf('PMP') >= 0 || kname.indexOf('过程FPY') >= 0) {
     window.location.href = '/xiyi-kpi-pmp-detail.html';  // PMP独立详情页
+  } else if (kname.indexOf('COQ') >= 0 || kname.indexOf('质量成本') >= 0) {
+    window.location.href = '/xiyi-kpi-coq-detail.html';  // COQ独立详情页
   } else {
     window.location.href = '/xiyi-kpi-detail.html?name=' + encodeURIComponent(k.name) + '&value=' + encodeURIComponent(k.value) + '&target=' + encodeURIComponent(k.target) + '&unit=' + encodeURIComponent(k.unit||'') + '&level=' + encodeURIComponent(k.level||'success') + '&idx=' + idx;
   }
