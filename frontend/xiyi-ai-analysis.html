@@ -147,6 +147,22 @@ function startNewAnalysis() {
   _traceId = 'ai_' + Date.now() + '_' + _sceneId;
   document.getElementById('loadingText').textContent = '🧠 AI智能体正在分析' + (_sceneName || '场景' + _sceneId) + '的品质数据...';
   
+  // 30秒超时保护
+  var timeoutTimer = setTimeout(function(){
+    document.getElementById('loadingText').textContent = '⏳ AI分析耗时较长，请继续等待...（超过60秒将自动显示当前结果）';
+  }, 30000);
+  var timeoutFallback = setTimeout(function(){
+    document.getElementById('loadingArea').style.display = 'none';
+    document.getElementById('resultArea').style.display = '';
+    document.getElementById('bannerIcon').textContent = '⏳';
+    document.getElementById('bannerTitle').textContent = 'AI分析仍在处理中';
+    document.getElementById('bannerSub').textContent = 'AI分析耗时超过预期，但仍在后台运行。请稍后刷新查看结果，或重新发起分析。';
+    document.getElementById('banner').style.borderColor = 'var(--color-warning)';
+    document.getElementById('metaGrid').innerHTML = '<div class="meta-item" style="grid-column:1/-1"><div class="lbl">Trace ID</div><div class="val" style="font-size:11px;color:var(--text-muted)">' + _traceId + '</div></div>';
+    document.getElementById('aiReportContent').innerHTML = '<div style="text-align:center;padding:30px"><div style="font-size:40px;margin-bottom:12px">⏳</div><div style="color:var(--text-muted)">AI分析仍在后台运行中，请稍后刷新页面查看结果。</div><div style="margin-top:16px"><button class="btn btn-primary" onclick="location.reload()">🔄 刷新</button></div></div>';
+    document.getElementById('btnRefresh').style.display = 'inline-flex';
+  }, 120000);
+
   fetch(API + '/analysis/ai-run', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -159,6 +175,8 @@ function startNewAnalysis() {
   })
   .then(function(r){return r.json();})
   .then(function(resp){
+    clearTimeout(timeoutTimer);
+    clearTimeout(timeoutFallback);
     if (resp.code === 0) {
       var report = resp.data.report || {};
       showResult(report, _traceId);
@@ -171,6 +189,8 @@ function startNewAnalysis() {
     }
   })
   .catch(function(e){
+    clearTimeout(timeoutTimer);
+    clearTimeout(timeoutFallback);
     showError('网络请求异常: ' + e.message);
   });
 }

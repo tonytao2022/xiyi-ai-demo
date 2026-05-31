@@ -593,18 +593,30 @@ def ai_analysis_run():
         try:
             _result = subprocess.run(
                 ['openclaw', 'agent', '-m', _prompt, '--agent', 'main', '--json'],
-                capture_output=True, text=True, timeout=60
+                capture_output=True, text=True, timeout=120
             )
             _output = _result.stdout.strip()
+            _stderr = _result.stderr.strip()
             _ai_response = ''
             if _output:
                 try:
-                    _json_out = json.loads(_output)
+                    # 可能包含换行分隔的多行JSON流，只取最后一行（完成态）
+                    _lines = _output.strip().split('\n')
+                    _last_line = _lines[-1] if len(_lines) > 1 else _output
+                    _json_out = json.loads(_last_line)
                     _payloads = _json_out.get('result', {}).get('payloads', [])
                     if _payloads:
                         _ai_response = _payloads[0].get('text', '')
                 except:
-                    _ai_response = _output[:2000]
+                    try:
+                        _json_out = json.loads(_output)
+                        _payloads = _json_out.get('result', {}).get('payloads', [])
+                        if _payloads:
+                            _ai_response = _payloads[0].get('text', '')
+                    except:
+                        _ai_response = _output[:2000]
+            if not _ai_response:
+                _ai_response = '本次AI分析未返回文本结果，请稍后重试。\n提示：' + (_prompt[:100] if _prompt else '')
         except subprocess.TimeoutExpired:
             _ai_response = 'AI推理超时(60s)，请重试或检查openclaw状态'
             logger.warning("AI analysis timeout for trace_id=%s scene_id=%s", trace_id, scene_id)
