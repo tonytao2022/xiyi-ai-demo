@@ -559,16 +559,33 @@ def ai_analysis_run():
             json.dumps({'scene_name': scene_name, 'step': 'init', 'progress': '初始化分析...', 'pct': 0}), 'running')
         cur.execute("INSERT INTO ag_agent_task (trace_id,scene_id,skill_name,input_params,status,started_at) VALUES (%s,%s,%s,%s,%s,NOW())", _params)
 
+    def _direct_conn():
+        """后台线程专用数据库连接(独立连接,不经过连接池)"""
+        _p = ''
+        try:
+            with open('/etc/mysql/debian.cnf') as _f:
+                for _l in _f:
+                    if 'password' in _l:
+                        _p = _l.split('=')[1].strip()
+                        break
+        except:
+            pass
+        return pymysql.connect(host='127.0.0.1', port=3306, user='debian-sys-maint',
+            password=_p, database='xiyi_quality', charset='utf8mb4')
+
     def _update_progress(step, msg, pct=0):
         try:
-            with get_cursor() as cur2:
-                cur2.execute("SELECT input_params FROM ag_agent_task WHERE trace_id=%s", (trace_id,))
-                row = cur2.fetchone()
-                params = json.loads(row['input_params']) if row else {}
-                params['step'] = step
-                params['progress'] = msg
-                params['pct'] = pct
-                cur2.execute("UPDATE ag_agent_task SET input_params=%s WHERE trace_id=%s", (json.dumps(params), trace_id))
+            _conn = _direct_conn()
+            _cur = _conn.cursor(pymysql.cursors.DictCursor)
+            _cur.execute("SELECT input_params FROM ag_agent_task WHERE trace_id=%s", (trace_id,))
+            row = _cur.fetchone()
+            params = json.loads(row['input_params']) if row else {}
+            params['step'] = step
+            params['progress'] = msg
+            params['pct'] = pct
+            _cur.execute("UPDATE ag_agent_task SET input_params=%s WHERE trace_id=%s", (json.dumps(params), trace_id))
+            _conn.commit()
+            _cur.close(); _conn.close()
         except Exception as e:
             logger.warning("progress update error: %s", e)
 
@@ -576,40 +593,58 @@ def ai_analysis_run():
         nonlocal trace_id, scene_id, scene_name
         _ai_response = ''
         try:
+            import subprocess as _sp, os as _os
+            logger.info("_run thread STARTING for trace_id=%s", trace_id)
             _update_progress('fetch_metrics', '正在查询场景指标数据...', 10)
-            with get_cursor() as cur:
-                metrics_result = {}
-                cur.execute("SELECT indicator_code, indicator_name FROM dg_indicator_atom ORDER BY id")
-                for ind in cur.fetchall():
-                    cur.execute("SELECT data_json FROM ds_mock_data WHERE scene_id=%s ORDER BY mock_date DESC LIMIT 1", (scene_id,))
-                    row = cur.fetchone()
-                    if row:
-                        try:
-                            d = json.loads(row['data_json'])
-                            metrics_result[ind['indicator_code']] = d
-                        except: pass
-                _update_progress('metrics_ready', f'指标数据已就绪({len(metrics_result)}个)', 25)
+            _conn = _direct_conn()
+            _cur = _conn.cursor(pymysql.cursors.DictCursor)
+            metrics_result = {}
+            _cur.execute("SELECT indicator_code, indicator_name FROM dg_indicator_atom ORDER BY id")
+            for ind in _cur.fetchall():
+                _cur.execute("SELECT data_json FROM ds_mock_data WHERE scene_id=%s ORDER BY mock_date DESC LIMIT 1", (scene_id,))
+                row = _cur.fetchone()
+                if row:
+                    try:
+                        d = json.loads(row['data_json'])
+                        metrics_result[ind['indicator_code']] = d
+                    except:
+                        pass
+            _cur.close()
+            _conn.close()
+            _update_progress('metrics_ready', '指标数据已就绪(%d个)' % len(metrics_result), 25)
 
             _update_progress('calling_llm', '正在调用AI大模型进行分析(约10-30秒)...', 30)
-            _metrics_summary = '\n'.join([f"{k}: {v}" for k, v in metrics_result.items()])
-            _prompt = f"你是一位制造企业品质专员助理。请分析以下品质数据：\n\n场景：{scene_name}\n指标数据：{_metrics_summary}\n\n请输出：\n1. 当前品质状况评估\n2. 异常指标识别\n3. 建议的4M1E排查方向\n4. 下一步行动计划\n\n请以结构化方式输出。"
-            _result = subprocess.run(
+            _metrics_summary = '\n'.join(["%s: %s" % (k, v) for k, v in metrics_result.items()])
+            _prompt = "你是一位制造企业品质专员助理。请分析以下品质数据：\n\n场景：%s\n指标数据：%s\n\n请输出：\n1. 当前品质状况评估\n2. 异常指标识别\n3. 建议的4M1E排查方向\n4. 下一步行动计划\n\n请以结构化方式输出。" % (scene_name, _metrics_summary)
+            import os as _os
+            _env = _os.environ.copy()
+            _env['HOME'] = '/root'
+            _env['XDG_RUNTIME_DIR'] = '/run/user/0'
+            _env['PATH'] = '/root/.local/share/pnpm:/root/.local/share/pnpm/global/5/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+            _env['NVM_BIN'] = '/root/.nvm/versions/node/v22.22.1/bin'
+            _env['PATH'] = _env['NVM_BIN'] + ':' + _env['PATH']
+            logger.info("_run calling openclaw for trace_id=%s", trace_id)
+            _result = _sp.run(
                 ['openclaw', 'agent', '-m', _prompt, '--agent', 'main', '--json'],
-                capture_output=True, text=True, timeout=180
+                capture_output=True, text=True, timeout=180,
+                env=_env
             )
+            logger.info("_run openclaw done for trace_id=%s stdout=%s stderr=%s", trace_id, len(_result.stdout or ''), len(_result.stderr or ''))
+            if _result.stderr.strip():
+                logger.warning("_run openclaw stderr: %s", _result.stderr.strip()[:500])
             _update_progress('parsing', '正在解析AI返回结果...', 70)
             _output = _result.stdout.strip()
             if _output:
                 try:
-                    _lines = _output.strip().split('\n')
-                    _last_line = _lines[-1] if len(_lines) > 1 else _output
-                    _json_out = json.loads(_last_line)
+                    _json_out = json.loads(_output)
                     _payloads = _json_out.get('result', {}).get('payloads', [])
                     if _payloads:
                         _ai_response = _payloads[0].get('text', '')
                 except:
                     try:
-                        _json_out = json.loads(_output)
+                        _lines = _output.strip().split('\n')
+                        _last_line = _lines[-1]
+                        _json_out = json.loads(_last_line)
                         _payloads = _json_out.get('result', {}).get('payloads', [])
                         if _payloads:
                             _ai_response = _payloads[0].get('text', '')
@@ -617,7 +652,6 @@ def ai_analysis_run():
                         _ai_response = _output[:2000]
             if not _ai_response:
                 _ai_response = '本次AI分析未返回文本结果。'
-
             _update_progress('analyzing', '正在整理分析报告...', 85)
             _has_alarm = ('异常' in _ai_response or '预警' in _ai_response or '超标' in _ai_response or '不合格' in _ai_response)
             for _k, _v in metrics_result.items():
@@ -630,17 +664,35 @@ def ai_analysis_run():
                 'metrics': metrics_result, 'ai_analysis': _ai_response,
                 'has_alarm': _has_alarm, 'hit_count': 0, 'max_severity': 'info',
             }
-            with get_cursor() as cur:
-                cur.execute("UPDATE ag_agent_task SET status='done', result=%s, completed_at=NOW() WHERE trace_id=%s",
-                    (json.dumps(report), trace_id))
+            _dc = _direct_conn()
+            _dcr = _dc.cursor(pymysql.cursors.DictCursor)
+            _dcr.execute("UPDATE ag_agent_task SET status='done', result=%s, completed_at=NOW() WHERE trace_id=%s",
+                (json.dumps(report), trace_id))
+            _dc.commit()
+            _dcr.close()
+            _dc.close()
+            logger.info("AI analysis completed for trace_id=%s", trace_id)
         except subprocess.TimeoutExpired:
-            with get_cursor() as cur:
-                cur.execute("UPDATE ag_agent_task SET status='error', result='{\"error\":\"timeout\"}' WHERE trace_id=%s", (trace_id,))
+            _dc = _direct_conn()
+            _dcr = _dc.cursor(pymysql.cursors.DictCursor)
+            _dcr.execute("UPDATE ag_agent_task SET status='error', result=%s WHERE trace_id=%s",
+                (json.dumps({'error': 'timeout'}), trace_id))
+            _dc.commit()
+            _dcr.close()
+            _dc.close()
+            logger.warning("AI analysis timeout for trace_id=%s", trace_id)
         except Exception as _e:
-            logger.error("AI analysis error: %s", _e)
-            with get_cursor() as cur:
-                cur.execute("UPDATE ag_agent_task SET status='error', result=%s WHERE trace_id=%s",
+            logger.error("AI analysis error: %s", _e, exc_info=True)
+            try:
+                _dc = _direct_conn()
+                _dcr = _dc.cursor(pymysql.cursors.DictCursor)
+                _dcr.execute("UPDATE ag_agent_task SET status='error', result=%s WHERE trace_id=%s",
                     (json.dumps({'error': str(_e)}), trace_id))
+                _dc.commit()
+                _dcr.close()
+                _dc.close()
+            except:
+                pass
 
     t = threading.Thread(target=_run, daemon=True)
     t.start()
