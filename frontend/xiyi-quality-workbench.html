@@ -355,7 +355,15 @@ function fullSceneAnalyze(sceneId, sceneName) {
 function showKpiDetail(idx) {
   var k = _kpiDetailList[idx];
   if (!k) return;
-  window.location.href = '/xiyi-kpi-detail.html?name=' + encodeURIComponent(k.name) + '&value=' + encodeURIComponent(k.value) + '&target=' + encodeURIComponent(k.target) + '&unit=' + encodeURIComponent(k.unit||'') + '&level=' + encodeURIComponent(k.level||'success') + '&idx=' + idx;
+  // KPI按名称分发到独立详情页，通用指标走模板
+  var kname = k.name || '';
+  if (kname.indexOf('在线一次交验合格率') >= 0 || kname.indexOf('FPY') >= 0) {
+    window.location.href = '/xiyi-kpi-fpy-detail.html';  // FPY独立详情页
+  } else if (kname.indexOf('磁物检验') >= 0) {
+    window.location.href = '/xiyi-kpi-mag-detail.html';  // 磁物独立详情页
+  } else {
+    window.location.href = '/xiyi-kpi-detail.html?name=' + encodeURIComponent(k.name) + '&value=' + encodeURIComponent(k.value) + '&target=' + encodeURIComponent(k.target) + '&unit=' + encodeURIComponent(k.unit||'') + '&level=' + encodeURIComponent(k.level||'success') + '&idx=' + idx;
+  }
 }
 
 // 诊断根因弹窗（复用场景详情）
