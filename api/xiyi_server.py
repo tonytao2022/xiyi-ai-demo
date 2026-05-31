@@ -637,35 +637,8 @@ def ai_analysis_run():
         cur.execute("UPDATE ag_agent_task SET status='done', result=%s, completed_at=NOW() WHERE trace_id=%s",
                 (json.dumps(report), trace_id))
 
-        # Antony P0-1: 只在检测到异常时创建CAPA方案,常规分析不再自动创建
-        if _has_alarm:
-            _plan_code = f"AI-{trace_id[-8:]}"
-            _root_cause_hint = ''
-            _action_hint = ''
-            for _line in _ai_response.split('\n'):
-                if '根因' in _line or '原因' in _line or '排查' in _line:
-                    _root_cause_hint = _line[:200]
-                if '行动' in _line or '建议' in _line or '改善' in _line or '计划' in _line:
-                    _action_hint = _line[:200]
-
-            # Antony P0-2: instance_id使用NULL代替0
-            cur.execute(
-                "INSERT INTO ap_capa_plan (plan_code,instance_id,title,root_cause,plan_content,priority,status,created_by) VALUES(%s,NULL,%s,%s,%s,%s,'open','openclaw_ai')",
-                (_plan_code,
-                 f'[AI自动] {scene_name} 异常告警分析',
-                 _root_cause_hint or 'AI分析识别到异常指标，建议人工确认根因',
-                 _action_hint or '1. 确认异常指标的真实性\n2. 启动4M1E排查流程\n3. 制定纠正预防措施',
-                 'medium'))
-            _plan_id = cur.lastrowid
-            # Antony P0-3: 统一INSERT字段列表
-            _task_code = f"AI-TASK-{trace_id[-6:]}"
-            cur.execute(
-                "INSERT INTO ap_capa_task (plan_id,task_code,title,assignee,status) VALUES(%s,%s,%s,%s,'open')",
-                (_plan_id, _task_code, f'{scene_name} 异常排查与改善', '品质专员'))
-            report['plan_id'] = _plan_id
-            report['plan_code'] = _plan_code
-        else:
-            report['message'] = '未检测到异常指标,无需创建CAPA方案'
+        # 纯分析模式: 不再自动创建CAPA方案,仅在报告中带回trace_id供前端跳转展示
+        report['message'] = 'AI分析已完成' if not _has_alarm else 'AI分析已完成,检测到异常指标,请查看报告详情'
 
         return api_success({
             'trace_id': trace_id,
