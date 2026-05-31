@@ -320,15 +320,14 @@ function aiAnalyze(sceneId, sceneName) {
   .then(function(r) { return r.json(); })
   .then(function(resp) {
     if (resp.code === 0) {
-      // 直接跳转诊断页查看AI分析报告,不再弹窗
-      window.location.href = '/xiyi-diagnose.html?scene=' + sceneId + '&trace=' + traceId;
+      // 跳转到独立AI分析页面查看报告
+      window.location.href = '/xiyi-ai-analysis.html?scene=' + sceneId + '&name=' + encodeURIComponent(sceneName || '') + '&trace=' + traceId;
     } else {
-      // 失败也跳转到诊断页,展示错误信息
-      window.location.href = '/xiyi-diagnose.html?scene=' + sceneId + '&error=' + encodeURIComponent(resp.error || '未知错误');
+      window.location.href = '/xiyi-ai-analysis.html?scene=' + sceneId + '&name=' + encodeURIComponent(sceneName || '') + '&error=' + encodeURIComponent(resp.error || '未知错误');
     }
   })
   .catch(function(e) {
-    window.location.href = '/xiyi-diagnose.html?scene=' + sceneId + '&error=' + encodeURIComponent(e.message);
+    window.location.href = '/xiyi-ai-analysis.html?scene=' + sceneId + '&name=' + encodeURIComponent(sceneName || '') + '&error=' + encodeURIComponent(e.message);
   });
 }
 
