@@ -787,6 +787,33 @@ def update_task(task_id):
             cur.execute("UPDATE sys_task SET " + ",".join(sets) + " WHERE id=%s", params)
         return api_success({'message': '任务已更新'})
 
+@app.route("/api/v1/xiyi/news", methods=["GET"])
+@api_handler
+def list_news():
+    """获取智能体新闻列表"""
+    limit = request.args.get("limit", 10, type=int)
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM sys_news WHERE is_active=1 ORDER BY id DESC LIMIT %s", (limit,))
+        news = [dict(r) for r in cur.fetchall()]
+        cur.execute("SELECT COUNT(*) as cnt FROM sys_news WHERE is_active=1 AND is_read=0")
+        unread = cur.fetchone()["cnt"]
+        return api_success({"news": news, "unread_count": unread})
+
+
+@app.route("/api/v1/xiyi/news/read", methods=["POST"])
+@api_handler
+def mark_news_read():
+    """标记新闻为已读"""
+    data = request.get_json()
+    news_id = data.get("news_id")
+    with get_cursor() as cur:
+        if news_id:
+            cur.execute("UPDATE sys_news SET is_read=1 WHERE id=%s", (news_id,))
+        else:
+            cur.execute("UPDATE sys_news SET is_read=1 WHERE is_read=0")
+        return api_success({"message": "已标记为已读"})
+
+
 @app.route('/api/v1/xiyi/alerts/<int:alert_id>', methods=['PUT'])
 @api_handler
 def update_alert(alert_id):
