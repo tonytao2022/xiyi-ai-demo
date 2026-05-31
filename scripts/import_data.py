@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """灌入品质专员场景基础数据"""
 import openpyxl, pymysql, json
-pwd = "iXve1rVBXfdA4tL9"
+# P0-1 Hugo: 从环境变量读取MySQL密码,不再硬编码
+pwd = __import__('os').environ.get('XIYI_MYSQL_PASS', '') or \
+    [l.split('=')[1].strip() for l in open('/etc/mysql/debian.cnf') if 'password' in l][0]
 wb = openpyxl.load_workbook("/root/.openclaw/media/qqbot/downloads/智能体应用需求表-品质（含数据源）_1780132027174_6e3b24.xlsx", data_only=True)
 conn = pymysql.connect(host='127.0.0.1',port=3306,user='debian-sys-maint',password=pwd,database='xiyi_quality',charset='utf8mb4')
 cur = conn.cursor()
 
-# 清空（按外键顺序）
-cur.execute("SET FOREIGN_KEY_CHECKS=0")
+# P0-4 Hugo: 用DELETE+事务包裹,避免TRUNCATE外键顺序问题
+cur.execute("START TRANSACTION")
 for t in ['ap_analysis_step_log','ap_analysis_instance','ap_capa_task_track','ap_capa_task','ap_capa_plan','ap_scene_ds_binding','ap_scene_step','ap_scene_report_tpl','ap_analysis_model','ap_scene_config','dg_indicator_snapshot','dg_derived_indicator','dg_indicator_atom','dg_indicator_category','dg_data_standard','dg_standard_column','ds_mapping_rule','ds_column_metadata','ds_table_metadata','ds_source_connection','ds_source_heartbeat','ds_sync_log','ds_mock_data','sys_config','vw_alert_record','dg_quality_check_log','dg_quality_check_rule']:
-    try: cur.execute(f"TRUNCATE TABLE {t}")
-    except: pass
-cur.execute("SET FOREIGN_KEY_CHECKS=1")
+    try: cur.execute(f"DELETE FROM {t}")
+    except Exception as _e: print(f"  WARN: DELETE {t}: {_e}")
+cur.execute("COMMIT")
 
 scenes = [
     (1,'QUAL_01','在线一次交验合格率管控 (深度优化版)','quality','品质监控','chart-line','集成MOM/MES/LIMS/SCADA数据，提供从全局监控、不合格结构分析到原料/设备关联分析的全景数据分析能力'),

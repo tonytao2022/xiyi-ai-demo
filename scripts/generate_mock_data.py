@@ -4,7 +4,9 @@ import pymysql, json, random, math
 from datetime import datetime, timedelta, date
 random.seed(42)
 
-pwd = "iXve1rVBXfdA4tL9"
+# P0-1 Hugo: 从环境变量读取MySQL密码
+pwd = __import__('os').environ.get('XIYI_MYSQL_PASS', '') or \
+    [l.split('=')[1].strip() for l in open('/etc/mysql/debian.cnf') if 'password' in l][0]
 conn = pymysql.connect(host='127.0.0.1',port=3306,user='debian-sys-maint',password=pwd,database='xiyi_quality')
 cur = conn.cursor()
 
