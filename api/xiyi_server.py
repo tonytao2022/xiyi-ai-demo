@@ -18,7 +18,7 @@
 import os, sys, json, pymysql, logging, traceback
 from datetime import datetime
 from functools import wraps
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 # DBUtils 连接池
 from dbutils.pooled_db import PooledDB
@@ -95,18 +95,51 @@ def get_cursor():
 app = Flask(__name__)
 CORS(app)
 
-# ─── API鉴权 (P0-1 Tony) ───
+# ─── 导入JWT认证模块 ───
+from auth_middleware import auth_bp, jwt_required, require_permission, optional_auth
+app.register_blueprint(auth_bp)
+
+# ─── API鉴权 (升级: 双模式 JWT + 兼容X-API-Key) ───
+PUBLIC_PATHS = {'/health', '/api/v1/xiyi/auth/login', '/api/v1/xiyi/auth/refresh',
+                '/api/v1/xiyi/auth/health'}
+
 @app.before_request
-def check_api_key():
+def check_auth():
     if request.method == 'OPTIONS':
-        return  # CORS预检放行
-    path = request.path
-    # 健康检查/health放行
-    if path == '/health' or path.startswith('/api/v1/xiyi/health'):
+        return
+    for pub in PUBLIC_PATHS:
+        if request.path == pub or request.path.startswith(pub):
+            return
+    if request.path == '/health' or request.path.startswith('/api/v1/xiyi/health'):
         return
     api_key = request.headers.get('X-API-Key', '')
-    if api_key != API_KEY:
-        return jsonify({'code': -1, 'error': 'Unauthorized: invalid or missing X-API-Key'}), 401
+    if api_key == API_KEY:
+        g.current_user = {'id': 1, 'user_code': 'admin', 'user_name': '系统管理员'}
+        g.current_roles = ['quality_specialist']
+        g.auth_mode = 'legacy'
+        return
+    import jwt as pyjwt
+    JWT_SEC = os.environ.get('XIYI_JWT_SECRET', 'xiyi-jwt-secret-change-in-production-2026')
+    def _try(token_str):
+        try:
+            p = pyjwt.decode(token_str, JWT_SEC, algorithms=['HS256'])
+            if p.get('type') != 'access': return False
+            g.current_user = {'id': p['uid'], 'user_code': p['sub'], 'roles': p.get('roles', [])}
+            g.current_roles = p.get('roles', [])
+            g.auth_mode = 'jwt'
+            return True
+        except Exception:
+            return False
+    auth_hdr = request.headers.get('Authorization', '')
+    if auth_hdr.startswith('Bearer ') and _try(auth_hdr[7:]):
+        return
+    jwt_hdr = request.headers.get('X-JWT-Token', '')
+    if jwt_hdr and _try(jwt_hdr):
+        return
+    cookie_tok = request.cookies.get('xiyi_token', '')
+    if cookie_tok and _try(cookie_tok):
+        return
+    return jsonify({'code': 401, 'error': 'Unauthorized'}), 401
 
 # ─── 统一异常处理装饰器 (P0-3 Tony: 消除37处重复traceback) ───
 def api_handler(f):
@@ -874,6 +907,168 @@ def delete_rule(rule_id):
     with get_cursor() as cur:
         cur.execute("DELETE FROM ag_rule_config WHERE id=%s", (rule_id,))
         return api_success({'message': '已删除'})
+
+
+
+# ── Phase 1: 数据源管理 ──
+@app.route('/api/v1/xiyi/datasources', methods=['GET'])
+@api_handler
+def list_datasources():
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM ds_source_connection ORDER BY id")
+        return api_success({'datasources': [dict(r) for r in cur.fetchall()]})
+
+@app.route('/api/v1/xiyi/datasources', methods=['POST'])
+@api_handler
+def create_datasource():
+    data = request.get_json()
+    with get_cursor() as cur:
+        cur.execute("INSERT INTO ds_source_connection (source_code,source_name,source_type,host,port,db_name,config_json,sync_frequency,retry_count) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)", (data['source_code'], data['source_name'], data.get('source_type','MySQL'), data.get('host',''), data.get('port',3306), data.get('db_name',''), json.dumps(data.get('config',{})), data.get('sync_frequency','daily'), data.get('retry_count',3)))
+        return api_success({'id': cur.lastrowid, 'message':'ok'})
+
+@app.route('/api/v1/xiyi/datasources/<int:ds_id>', methods=['GET'])
+@api_handler
+def get_datasource(ds_id):
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM ds_source_connection WHERE id=%s", (ds_id,))
+        r = cur.fetchone()
+        if not r: return api_error('not found', 404)
+        return api_success({'datasource': dict(r)})
+
+@app.route('/api/v1/xiyi/datasources/<int:ds_id>', methods=['PUT'])
+@api_handler
+def update_datasource(ds_id):
+    data = request.get_json()
+    with get_cursor() as cur:
+        for f in ['source_code','source_name','source_type','host','port','db_name','sync_frequency','retry_count','status']:
+            if f in data: cur.execute(f"UPDATE ds_source_connection SET {f}=%s WHERE id=%s", (data[f], ds_id))
+        return api_success({'message':'ok'})
+
+@app.route('/api/v1/xiyi/csv-import', methods=['POST'])
+@api_handler
+def csv_import():
+    import csv, io
+    if 'file' not in request.files: return api_error('no file')
+    f = request.files['file']
+    scene_id = request.form.get('scene_id', 1, type=int)
+    reader = csv.DictReader(io.StringIO(f.read().decode('utf-8')))
+    rows = [r for r in reader]
+    if not rows: return api_error('empty csv')
+    with get_cursor() as cur:
+        for row in rows:
+            cur.execute("INSERT INTO ds_mock_data (scene_id,mock_date,data_json) VALUES (%s,%s,%s)", (scene_id, row.get('trade_date',row.get('date','')), json.dumps(row)))
+    return api_success({'imported': len(rows), 'message': f'{len(rows)}条导入成功'})
+
+# ── Phase 2: 提示词模板 ──
+@app.route('/api/v1/xiyi/prompts', methods=['GET'])
+@api_handler
+def list_prompts():
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM ag_prompt_template WHERE is_active=1 ORDER BY scene_id,id")
+        return api_success({'templates': [dict(r) for r in cur.fetchall()]})
+
+@app.route('/api/v1/xiyi/prompts', methods=['POST'])
+@api_handler
+def create_prompt():
+    data = request.get_json()
+    with get_cursor() as cur:
+        cur.execute("INSERT INTO ag_prompt_template (template_code,scene_id,role,system_prompt,user_prompt,output_format,temperature,model,description) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)", (data['template_code'], data.get('scene_id'), data.get('role','quality_analyst'), data.get('system_prompt',''), data.get('user_prompt',''), data.get('output_format','markdown'), data.get('temperature',0.7), data.get('model','deepseek-chat'), data.get('description','')))
+        return api_success({'id': cur.lastrowid, 'message':'ok'})
+
+@app.route('/api/v1/xiyi/prompts/<int:pt_id>', methods=['GET'])
+@api_handler
+def get_prompt(pt_id):
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM ag_prompt_template WHERE id=%s", (pt_id,))
+        r = cur.fetchone()
+        if not r: return api_error('not found', 404)
+        return api_success({'template': dict(r)})
+
+@app.route('/api/v1/xiyi/prompts/<int:pt_id>', methods=['PUT'])
+@api_handler
+def update_prompt(pt_id):
+    data = request.get_json()
+    with get_cursor() as cur:
+        sets = [f"{f}=%s" for f in ['template_code','scene_id','role','system_prompt','user_prompt','description','is_active'] if f in data]
+        if sets:
+            vals = [data[s.split('=')[0]] for s in sets]; vals.append(pt_id)
+            cur.execute("UPDATE ag_prompt_template SET " + ",".join(sets) + " WHERE id=%s", vals)
+        return api_success({'message':'ok'})
+
+# ── Phase 3: Tool Registry ──
+@app.route('/api/v1/xiyi/tools', methods=['GET'])
+@api_handler
+def list_tools():
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM ag_tool_registry WHERE is_active=1 ORDER BY tool_type,id")
+        return api_success({'tools': [dict(r) for r in cur.fetchall()]})
+
+# ── Phase 5: 记忆系统 ──
+@app.route('/api/v1/xiyi/memory', methods=['GET'])
+@api_handler
+def list_memories():
+    scene_id = request.args.get('scene_id', type=int)
+    mtype = request.args.get('type', '')
+    with get_cursor() as cur:
+        sql = "SELECT * FROM ag_memory_store"; params = []
+        if scene_id: sql += " WHERE scene_id=%s"; params.append(scene_id)
+        if mtype: sql += (" AND" if scene_id else " WHERE") + " memory_type=%s"; params.append(mtype)
+        cur.execute(sql+" ORDER BY id DESC LIMIT 20", params)
+        return api_success({'memories': [dict(r) for r in cur.fetchall()]})
+
+@app.route('/api/v1/xiyi/memory', methods=['POST'])
+@api_handler
+def save_memory():
+    data = request.get_json()
+    with get_cursor() as cur:
+        cur.execute("INSERT INTO ag_memory_store (trace_id,memory_type,memory_key,memory_value,scene_id,session_id,is_persistent) VALUES (%s,%s,%s,%s,%s,%s,%s)", (data.get('trace_id',''), data.get('memory_type','observation'), data.get('memory_key',''), json.dumps(data.get('memory_value',{})), data.get('scene_id'), data.get('session_id'), data.get('is_persistent',0)))
+        return api_success({'id': cur.lastrowid, 'message':'ok'})
+
+# ── Phase 6: 知识库 ──
+@app.route('/api/v1/xiyi/knowledge', methods=['GET'])
+@api_handler
+def list_knowledge():
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM ag_knowledge_base WHERE is_active=1 ORDER BY id DESC")
+        return api_success({'knowledge': [dict(r) for r in cur.fetchall()]})
+
+@app.route('/api/v1/xiyi/knowledge', methods=['POST'])
+@api_handler
+def create_knowledge():
+    data = request.get_json()
+    with get_cursor() as cur:
+        cur.execute("INSERT INTO ag_knowledge_base (kb_code,kb_type,title,content,tags,scene_id) VALUES (%s,%s,%s,%s,%s,%s)", (data['kb_code'], data.get('kb_type','standard'), data.get('title',''), data.get('content',''), json.dumps(data.get('tags',[])), data.get('scene_id')))
+        return api_success({'id': cur.lastrowid, 'message':'ok'})
+
+# ── Phase 8: 工作流 ──
+@app.route('/api/v1/xiyi/workflows', methods=['GET'])
+@api_handler
+def list_workflows():
+    wc = request.args.get('code', '')
+    with get_cursor() as cur:
+        if wc:
+            cur.execute("SELECT * FROM ag_workflow_step WHERE workflow_code=%s AND is_active=1 ORDER BY step_order", (wc,))
+            return api_success({'steps': [dict(r) for r in cur.fetchall()]})
+        cur.execute("SELECT DISTINCT workflow_code FROM ag_workflow_step WHERE is_active=1")
+        return api_success({'workflows': [r['workflow_code'] for r in cur.fetchall()]})
+
+@app.route('/api/v1/xiyi/workflows/execute', methods=['POST'])
+@api_handler
+def execute_workflow():
+    data = request.get_json()
+    wc = data.get('workflow_code', '')
+    if not wc: return api_error('no workflow_code')
+    with get_cursor() as cur:
+        cur.execute("SELECT COUNT(*) as c FROM ag_workflow_step WHERE workflow_code=%s AND is_active=1", (wc,))
+        return api_success({'workflow': wc, 'steps_count': cur.fetchone()['c'], 'message':'ok'})
+
+# ── Phase 9: 数据血缘 ──
+@app.route('/api/v1/xiyi/lineage', methods=['GET'])
+@api_handler
+def list_lineage():
+    with get_cursor() as cur:
+        cur.execute("SELECT * FROM ds_data_lineage ORDER BY target_indicator")
+        return api_success({'lineage': [dict(r) for r in cur.fetchall()]})
 
 if __name__ == '__main__':
     logger.info("Starting Xiyi AI Brain API on port 8890...")
