@@ -207,6 +207,7 @@ def scene_detail(scene_id):
 # ─── 分析流程API ───
 @app.route('/api/v1/xiyi/analysis/start', methods=['POST'])
 @api_handler
+@require_permission('tool:ai_analysis:execute')
 def start_analysis():
     data = request.get_json()
     scene_id = data.get('scene_id')
@@ -240,6 +241,7 @@ def get_analysis(inst_id):
 
 @app.route('/api/v1/xiyi/analysis/<int:inst_id>/step/<int:step_id>', methods=['POST'])
 @api_handler
+@require_permission('tool:ai_analysis:execute')
 def update_step(inst_id, step_id):
     data = request.get_json()
     with get_cursor() as cur:
@@ -337,6 +339,7 @@ def list_capa_plans():
 
 @app.route('/api/v1/xiyi/capa/plans', methods=['POST'])
 @api_handler
+@require_permission('admin:capa')
 def create_capa_plan():
     data = request.get_json()
     with get_cursor() as cur:
@@ -367,6 +370,7 @@ def get_capa_plan(plan_id):
 
 @app.route('/api/v1/xiyi/capa/tasks', methods=['POST'])
 @api_handler
+@require_permission('admin:capa')
 def create_capa_task():
     data = request.get_json()
     with get_cursor() as cur:
@@ -383,6 +387,7 @@ def create_capa_task():
 
 @app.route('/api/v1/xiyi/capa/tasks/<int:task_id>', methods=['PUT'])
 @api_handler
+@require_permission('admin:capa')
 def update_capa_task(task_id):
     data = request.get_json()
     with get_cursor() as cur:
@@ -399,6 +404,7 @@ def update_capa_task(task_id):
 
 @app.route('/api/v1/xiyi/capa/tasks/<int:task_id>/track', methods=['POST'])
 @api_handler
+@require_permission('admin:capa')
 def add_task_track(task_id):
     data = request.get_json()
     with get_cursor() as cur:
@@ -425,6 +431,7 @@ def list_steps(scene_id):
 
 @app.route('/api/v1/xiyi/steps/<int:step_id>', methods=['PUT'])
 @api_handler
+@require_permission('scene:all:write')
 def update_step_config(step_id):
     data = request.get_json()
     with get_cursor() as cur:
@@ -442,6 +449,7 @@ def update_step_config(step_id):
 
 @app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps/reorder', methods=['POST'])
 @api_handler
+@require_permission('scene:all:write')
 def reorder_steps(scene_id):
     data = request.get_json()
     step_ids = data.get('step_ids', [])
@@ -452,6 +460,7 @@ def reorder_steps(scene_id):
 
 @app.route('/api/v1/xiyi/scenes/<int:scene_id>/steps', methods=['POST'])
 @api_handler
+@require_permission('scene:all:write')
 def add_step(scene_id):
     data = request.get_json()
     with get_cursor() as cur:
@@ -465,6 +474,7 @@ def add_step(scene_id):
 
 @app.route('/api/v1/xiyi/steps/<int:step_id>', methods=['DELETE'])
 @api_handler
+@require_permission('scene:all:write')
 def delete_step(step_id):
     with get_cursor() as cur:
         cur.execute("DELETE FROM ap_scene_step WHERE id=%s", (step_id,))
@@ -497,6 +507,7 @@ def list_role_scenes(role_code):
 
 @app.route('/api/v1/xiyi/indicators/<string:code>', methods=['PUT'])
 @api_handler
+@require_permission('admin:config')
 def update_indicator(code):
     data = request.get_json()
     with get_cursor() as cur:
@@ -534,6 +545,7 @@ def metrics_query():
 
 @app.route('/api/v1/xiyi/rules/evaluate', methods=['POST'])
 @api_handler
+@require_permission('tool:rule_check:execute')
 def evaluate_rules():
     """规则引擎执行 - 返回所有命中规则"""
     data = request.get_json()
@@ -573,6 +585,7 @@ def evaluate_rules():
 
 @app.route('/api/v1/xiyi/analysis/ai-run', methods=['POST'])
 @api_handler
+@require_permission('tool:ai_analysis:execute')
 def ai_analysis_run():
     """AI分析入口 - 异步模式：立即返回trace_id,后台线程执行openclaw分析"""
     import threading, subprocess
