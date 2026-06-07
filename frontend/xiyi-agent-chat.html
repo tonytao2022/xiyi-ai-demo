@@ -208,14 +208,14 @@ async function sendMessage(){
     // ── Step 3: 轮询AI结果 ──
     if(r.workflow_triggered||r.ai_status){
       addTyping();
-      var polling=true, attempts=0, maxAttempts=30;
+      var polling=true, attempts=0, maxAttempts=60;
       var statusEl=document.getElementById('typing');
       if(statusEl){
         statusEl.innerHTML='<div class="msg-bubble"><b>🧠 AI正在分析中...</b><div class="progress-bar"><div class="fill" style="width:5%"></div></div><div class="progress-text">准备数据...</div></div>';
       }
 
       while(polling&&attempts<maxAttempts){
-        await sleep(2500); attempts++;
+        await sleep(3000); attempts++;
         
         try{
           var s=await authFetch(API+'/agent/analyze/result/'+r.trace_id).then(function(r){return r.json()});
@@ -227,7 +227,8 @@ async function sendMessage(){
             var fill=document.querySelector('#typing .fill');
             var txt=document.querySelector('#typing .progress-text');
             if(fill)fill.style.width=(status.pct||5)+'%';
-            if(txt)txt.textContent=(status.progress||'处理中...')+' ('+(status.pct||0)+'%)';
+            var elapsed=Math.round(attempts*3);
+            if(txt)txt.textContent=(status.progress||'处理中...')+' ('+(status.pct||0)+'%, '+elapsed+'秒)';
           }
 
           if(status.status==='done'||status.status==='error'){
@@ -252,6 +253,11 @@ async function sendMessage(){
       addMsg('agent','<i style="color:var(--muted)">⚠ 该场景暂无指标数据，请先在数据源管理页面上传数据</i>');
     }
 
+  // 轮询耗尽
+  if(polling){
+    rmTyping();
+    addMsg('agent','<i style="color:var(--yellow)">⏳ AI分析仍在进行中(已等待'+Math.round(maxAttempts*3)+'秒)，请稍后在"分析结果"中查看，或重新发起对话。</i>');
+  }
   }catch(e){
     rmTyping();
     addMsg('agent','<span style="color:var(--red)">❌ '+esc(e.message)+'</span>');
