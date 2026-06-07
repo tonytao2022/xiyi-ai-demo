@@ -233,6 +233,9 @@ def dispatch_agent(trace_id: str, scene_code: str, role_code: str, user_input: s
     intent = classify_intent(user_input)
     if not scene_code and intent['scene_code']:
         scene_code = intent['scene_code']
+    # 兜底: 无场景码时使用通用品质分析场景
+    if not scene_code:
+        scene_code = 'QUAL_01'
     
     # ── 2. 装配上下文 ──
     context = assemble_context(trace_id, scene_code, role_code, user_input)
