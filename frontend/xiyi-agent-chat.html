@@ -15,27 +15,40 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
 .header .nav a:hover,.header .nav a.active{background:rgba(59,130,246,0.1);color:var(--blue)}
 .header .status{font-size:11px;color:var(--green);margin-left:auto}
 .chat-area{flex:1;overflow-y:auto;padding:24px;max-width:900px;margin:0 auto;width:100%}
-.welcome{text-align:center;padding:60px 20px}
-.welcome .icon{font-size:48px;margin-bottom:16px;display:inline-block;width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(139,92,246,0.1));display:flex;align-items:center;justify-content:center}
-.welcome h2{font-size:20px;color:#fff;margin-bottom:8px}
-.welcome p{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.6}
-.welcome .suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.welcome{text-align:center;padding:40px 20px}
+.welcome .icon{font-size:48px;margin-bottom:12px;width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(139,92,246,0.1));display:inline-flex;align-items:center;justify-content:center}
+.welcome h2{font-size:18px;color:#fff;margin-bottom:6px}
+.welcome p{font-size:13px;color:var(--text2);line-height:1.6}
+.welcome .suggestions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
 .suggestion{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap}
 .suggestion:hover{background:var(--border);color:var(--text)}
 .msg{margin-bottom:20px;animation:fadein .3s}
 .msg-user{text-align:right}
 .msg-user .msg-bubble{background:var(--blue);color:#fff;border-radius:16px 16px 4px 16px;padding:12px 16px;display:inline-block;max-width:80%;font-size:14px;text-align:left}
-.msg-agent .msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:16px 16px 16px 4px;padding:12px 16px;max-width:85%;font-size:14px;line-height:1.6}
-.msg-agent .msg-header{font-size:11px;color:var(--muted);margin-bottom:4px;display:flex;align-items:center;gap:6px}
-.msg-agent .msg-header .role{background:rgba(139,92,246,0.1);color:var(--purple);padding:1px 8px;border-radius:8px;font-size:10px}
-.msg-bubble .data-table{margin-top:10px;font-size:12px;width:100%;border-collapse:collapse}
-.msg-bubble .data-table td{padding:4px 8px;border-bottom:1px solid var(--border)}
-.msg-bubble .data-table tr:last-child td{border-bottom:none}
-.msg-bubble .trace-id{font-size:10px;color:var(--muted);margin-top:6px;font-family:monospace}
+.msg-agent .msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:16px 16px 16px 4px;padding:16px;max-width:85%;font-size:14px;line-height:1.7}
+.msg-agent .msg-header{font-size:12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.msg-agent .msg-header .role-badge{background:rgba(139,92,246,0.12);color:var(--purple);padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600}
+.msg-agent .msg-header .intent-badge{background:rgba(59,130,246,0.12);color:var(--blue);padding:2px 10px;border-radius:10px;font-size:11px}
+.msg-agent .msg-header .conf-badge{font-size:10px;color:var(--muted)}
+.ai-result h3{font-size:14px;color:var(--green);margin:16px 0 8px;border-bottom:1px solid rgba(34,197,94,0.1);padding-bottom:6px}
+.ai-result h4{font-size:13px;color:var(--text2);margin:12px 0 6px}
+.ai-result ul,.ai-result ol{padding-left:20px;margin:6px 0}
+.ai-result li{margin:4px 0;font-size:13px}
+.ai-result p{margin:6px 0;font-size:13px}
+.ai-result strong,.ai-result b{color:var(--text)}
+.ai-result code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--yellow)}
+.alarm-tag{display:inline-block;background:rgba(239,68,68,0.12);color:var(--red);padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px}
+.data-table{margin:10px 0;font-size:12px;width:100%;border-collapse:collapse}
+.data-table td{padding:5px 10px;border-bottom:1px solid var(--border)}
+.data-table th{text-align:left;padding:5px 10px;border-bottom:2px solid var(--border);font-size:11px;color:var(--muted)}
+.data-table tr:last-child td{border-bottom:none}
+.trace-id{font-size:10px;color:var(--muted);margin-top:8px;font-family:monospace}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .5s;border-radius:2px}
+.progress-text{font-size:11px;color:var(--muted);margin-top:2px}
 .typing{display:flex;align-items:center;gap:4px;padding:8px 0}
 .typing span{width:6px;height:6px;background:var(--text2);border-radius:50%;animation:typing 1.4s infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
 @keyframes typing{0%,60%,100%{opacity:.3;transform:scale(1)}30%{opacity:1;transform:scale(1.2)}}
 @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .input-area{padding:16px 24px;background:var(--bg2);border-top:1px solid var(--border)}
@@ -43,8 +56,7 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
 .input-box textarea{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;color:var(--text);font-size:14px;resize:none;outline:none;min-height:44px;max-height:120px;font-family:inherit}
 .input-box textarea:focus{border-color:var(--blue)}
 .input-box button{padding:10px 20px;background:linear-gradient(135deg,var(--blue),var(--purple));border:none;border-radius:var(--radius);color:#fff;font-size:14px;cursor:pointer;font-weight:600;white-space:nowrap}
-.input-box button:hover{opacity:.9}
-.input-box button:disabled{opacity:.5;cursor:not-allowed}
+.input-box button:hover{opacity:.9}.input-box button:disabled{opacity:.5}
 .error{color:var(--red);font-size:12px;text-align:center;padding:4px 0}
 </style>
 </head>
@@ -57,220 +69,204 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
     <a href="/xiyi-agent-chat.html" class="active">智能对话</a>
     <a href="/xiyi-quality-workbench.html">品质工作台</a>
   </div>
-  <div class="status" id="agentStatus">🟢 6个Agent就绪</div>
+  <div class="status" id="agentStatus">🟢 7个Agent就绪</div>
 </div>
 
 <div class="chat-area" id="chatArea">
   <div class="welcome" id="welcome">
     <div class="icon">🤖</div>
     <h2>兮易AI智体 · 智能对话</h2>
-    <p>我是您的企业AI助手，可以帮您分析品质、设备、生产、库存、销售等业务问题<br>试着问我以下问题，或者输入您自己的业务问题</p>
-    <div class="suggestions" id="suggestions">
+    <p>我是您的企业AI助手，可以帮您分析品质、设备、生产、库存、销售等业务问题</p>
+    <div class="suggestions">
       <span class="suggestion" onclick="askSuggestion(this)">FPY合格率为什么下降了？</span>
       <span class="suggestion" onclick="askSuggestion(this)">分析磁物健康异常原因</span>
       <span class="suggestion" onclick="askSuggestion(this)">最近呆滞库存情况如何？</span>
       <span class="suggestion" onclick="askSuggestion(this)">IQC来料检验有什么问题？</span>
-      <span class="suggestion" onclick="askSuggestion(this)">设备OEE效率分析</span>
-      <span class="suggestion" onclick="askSuggestion(this)">库存周转率为什么偏低？</span>
     </div>
   </div>
 </div>
 
 <div class="input-area">
   <div class="input-box">
-    <textarea id="userInput" placeholder="输入您的业务问题……" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+    <textarea id="userInput" placeholder="输入业务问题，如: FPY合格率为什么下降了？" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
     <button id="sendBtn" onclick="sendMessage()">发送</button>
   </div>
-  <div class="error" id="errorMsg"></div>
 </div>
 
 <script src="/xiyi-auth.js?v=2"></script>
 <script>
-const API = '/api/v1/xiyi';
-var currentTraceId = null;
+var API='/api/v1/xiyi', welcomeHidden=false;
 
-// 欢迎页是否已隐藏
-var welcomeHidden = false;
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
 
-// 添加消息到聊天区
-function addMessage(role, content, extra) {
-  if (!welcomeHidden) {
-    document.getElementById('welcome').style.display = 'none';
-    welcomeHidden = true;
-  }
-  var div = document.createElement('div');
-  div.className = 'msg msg-' + role;
-  var bubble = '<div class="msg-bubble">';
-  if (extra && extra.roleName) {
-    bubble += '<div class="msg-header">🤖 ' + extra.roleName + '<span class="role">' + extra.intent + '</span></div>';
-  }
-  bubble += content;
-  if (extra && extra.traceId) {
-    bubble += '<div class="trace-id">trace: ' + extra.traceId.substring(0,8) + '...</div>';
-  }
-  bubble += '</div>';
-  div.innerHTML = bubble;
-  document.getElementById('chatArea').appendChild(div);
-  div.scrollIntoView({behavior:'smooth'});
+function addMsg(role,html,msgId){
+  if(!welcomeHidden){document.getElementById('welcome').style.display='none';welcomeHidden=true}
+  var d=document.createElement('div');d.className='msg msg-'+role;
+  if(msgId)d.id=msgId;
+  d.innerHTML='<div class="msg-bubble">'+html+'</div>';
+  document.getElementById('chatArea').appendChild(d);
+  d.scrollIntoView({behavior:'smooth'});return d;
 }
 
-// 添加加载动画
-function addTyping() {
-  if (!welcomeHidden) {
-    document.getElementById('welcome').style.display = 'none';
-    welcomeHidden = true;
-  }
-  var div = document.createElement('div');
-  div.className = 'msg msg-agent';
-  div.id = 'typing-indicator';
-  div.innerHTML = '<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
-  document.getElementById('chatArea').appendChild(div);
-  div.scrollIntoView({behavior:'smooth'});
+function addTyping(){
+  if(!welcomeHidden){document.getElementById('welcome').style.display='none';welcomeHidden=true}
+  var d=document.createElement('div');d.className='msg msg-agent';d.id='typing';
+  d.innerHTML='<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  document.getElementById('chatArea').appendChild(d);
+  d.scrollIntoView({behavior:'smooth'});
 }
 
-function removeTyping() {
-  var el = document.getElementById('typing-indicator');
-  if (el) el.remove();
+function rmTyping(){var e=document.getElementById('typing');if(e)e.remove()}
+function fmtNum(n,d){if(null==n||0===n)return'--';return Number(n).toFixed(d||1)}
+
+function askSuggestion(el){document.getElementById('userInput').value=el.textContent;sendMessage()}
+
+// ── 简单Markdown渲染 ──
+function md2html(txt){
+  if(!txt)return'';
+  txt=esc(txt);
+  // 标题
+  txt=txt.replace(/^### (.+)$/gm,'<h4>$1</h4>');
+  txt=txt.replace(/^## (.+)$/gm,'<h3>$1</h3>');
+  // 粗体
+  txt=txt.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  // 列表
+  txt=txt.replace(/^- (.+)$/gm,'<li>$1</li>');
+  txt=txt.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  // 编号列表
+  txt=txt.replace(/^\d+\.\s+(.+)$/gm,'<li>$1</li>');
+  // 段落
+  txt=txt.replace(/\n\n/g,'</p><p>');
+  txt='<p>'+txt+'</p>';
+  txt=txt.replace(/<p>\s*<\/p>/g,'');
+  return txt;
 }
 
-// 格式化数字
-function fmt(n, d) {
-  if (n === undefined || n === null || n === 0) return '--';
-  return Number(n).toFixed(d || 1);
-}
-
-// 预设问题
-function askSuggestion(el) {
-  document.getElementById('userInput').value = el.textContent;
-  sendMessage();
-}
-
-// 发送消息
-async function sendMessage() {
-  var input = document.getElementById('userInput');
-  var userText = input.value.trim();
-  if (!userText) return;
+// ── 核心：发送消息 → 意图 → 调度 → 轮询AI结果 ──
+async function sendMessage(){
+  var input=document.getElementById('userInput');
+  var btn=document.getElementById('sendBtn');
+  var text=input.value.trim();
+  if(!text)return;
   
-  var btn = document.getElementById('sendBtn');
-  var err = document.getElementById('errorMsg');
-  err.textContent = '';
-  btn.disabled = true;
-  input.disabled = true;
+  btn.disabled=true; input.disabled=true;
+  addMsg('user',esc(text));
+  input.value=''; addTyping();
 
-  // 显示用户消息
-  addMessage('user', userText.replace(/</g,'&lt;'));
-  input.value = '';
-  addTyping();
-
-  try {
+  try{
     // Step 1: 意图分类
-    var cResp = await authFetch(API + '/agent/classify', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({user_input: userText})
+    var c=await authFetch(API+'/agent/classify',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user_input:text})
     }).then(function(r){return r.json()});
+    if(c.code!==0)throw new Error('意图分类失败');
+    var intent=c.data;
+    rmTyping(); addTyping();
 
-    if (cResp.code !== 0) throw new Error('意图分类失败');
-
-    var intent = cResp.data;
-    removeTyping();
-    addTyping();
-
-    // Step 2: Agent调度
-    var dResp = await authFetch(API + '/agent/dispatch', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        user_input: userText,
-        scene_code: intent.scene_code || '',
-        role_code: intent.role_code || 'quality_specialist'
-      })
+    // Step 2: 调度Agent
+    var d=await authFetch(API+'/agent/dispatch',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user_input:text,scene_code:intent.scene_code||'',role_code:intent.role_code||'quality_specialist'})
     }).then(function(r){return r.json()});
+    if(d.code!==0)throw new Error(d.error||'调度失败');
+    
+    var r=d.data;
+    rmTyping();
 
-    if (dResp.code !== 0) throw new Error('Agent调度失败');
+    // ── 构建摘要消息 ──
+    var h='';
+    h+='<div class="msg-header">';
+    h+='<span class="role-badge">🤖 '+getRole(intent.role_code)+'</span>';
+    h+='<span class="intent-badge">'+getIntent(intent.intent)+'</span>';
+    h+='<span class="conf-badge">置信度 '+(Math.round(intent.confidence*100))+'%</span>';
+    h+='</div>';
 
-    var result = dResp.data;
-    currentTraceId = result.trace_id;
-    removeTyping();
-
-    // 构建回复
-    var lines = [];
-    lines.push('<b>📋 意图识别:</b> ' + getIntentLabel(intent.intent) + ' (置信度 ' + Math.round(intent.confidence * 100) + '%)');
-    lines.push('<b>👤 调度Agent:</b> ' + getRoleLabel(intent.role_code));
-
-    if (result.context.workflow_steps && result.context.workflow_steps.length > 0) {
-      lines.push('<b>📝 执行计划:</b>');
-      result.context.workflow_steps.forEach(function(s) {
-        var icon = {'query':'📊','ai_analysis':'🧠','rule_check':'✅','manual_input':'✋','decision':'🎯'}[s.type] || '📌';
-        lines.push('  ' + (s.order || '') + '. ' + icon + ' ' + (s.name || '步骤'));
-      });
+    var wf=r.context&&r.context.workflow_steps||[];
+    if(wf.length){
+      h+='<b>📝 执行计划:</b> ';
+      var icons={query:'📊',ai_analysis:'🧠',rule_check:'✅',manual_input:'✋',decision:'🎯'};
+      h+=wf.map(function(s){return icons[s.type]||'📌'}).join(' → ');
     }
 
-    if (result.first_step_result && result.first_step_result.data) {
-      lines.push('<b>📊 当前数据:</b>');
-      var data = result.first_step_result.data.slice(0, 5);
-      if (data.length > 0) {
-        lines.push('<table class="data-table">');
-        data.forEach(function(d) {
-          lines.push('<tr><td>' + (d.code || d.indicator_code || '指标') + '</td><td style="text-align:right">' + fmt(d.value, 2) + '</td><td style="color:var(--muted);font-size:10px">' + (d.time || d.snapshot_date || '') + '</td></tr>');
-        });
-        lines.push('</table>');
+    if(r.first_step_result&&r.first_step_result.data&&r.first_step_result.data.length>0){
+      var data=r.first_step_result.data.slice(0,6);
+      h+='<br><b>📊 指标数据:</b>';
+      h+='<table class="data-table"><tr><th>指标</th><th>数值</th><th>日期</th></tr>';
+      data.forEach(function(x){h+='<tr><td>'+esc(x.code)+'</td><td style="text-align:right">'+fmtNum(x.value,2)+'</td><td style="color:var(--muted)">'+(x.time||'')+'</td></tr>'});
+      h+='</table>';
+    }
+
+    h+='<div class="trace-id">trace:'+r.trace_id.substring(0,12)+'...</div>';
+    addMsg('agent',h);
+
+    // ── Step 3: 轮询AI结果 ──
+    if(r.workflow_triggered||r.ai_status){
+      addTyping();
+      var polling=true, attempts=0, maxAttempts=30;
+      var statusEl=document.getElementById('typing');
+      if(statusEl){
+        statusEl.innerHTML='<div class="msg-bubble"><b>🧠 AI正在分析中...</b><div class="progress-bar"><div class="fill" style="width:5%"></div></div><div class="progress-text">准备数据...</div></div>';
       }
-    } else {
-      lines.push('<i style="color:var(--muted)">数据暂未入库，请确保场景指标数据已上传</i>');
+
+      while(polling&&attempts<maxAttempts){
+        await sleep(2500); attempts++;
+        
+        try{
+          var s=await authFetch(API+'/agent/analyze/result/'+r.trace_id).then(function(r){return r.json()});
+          if(s.code!==0)continue;
+          var status=s.data;
+          
+          // 更新进度条
+          if(statusEl){
+            var fill=document.querySelector('#typing .fill');
+            var txt=document.querySelector('#typing .progress-text');
+            if(fill)fill.style.width=(status.pct||5)+'%';
+            if(txt)txt.textContent=(status.progress||'处理中...')+' ('+(status.pct||0)+'%)';
+          }
+
+          if(status.status==='done'||status.status==='error'){
+            polling=false;
+            rmTyping();
+            
+            if(status.status==='done'&&status.result&&status.result.ai_analysis){
+              var ai=status.result.ai_analysis;
+              var html='<div class="ai-result">'+md2html(ai)+'</div>';
+              if(status.result.has_alarm){
+                html='<span class="alarm-tag">⚠ 检测到异常</span>'+html;
+              }
+              html+='<div class="trace-id">✅ 分析完成 · trace:'+r.trace_id.substring(0,12)+'...</div>';
+              addMsg('agent',html);
+            }else if(status.status==='error'){
+              addMsg('agent','<span style="color:var(--red)">❌ AI分析失败: '+(status.result&&status.result.error||'未知')+'</span>');
+            }
+          }
+        }catch(e){/* retry */}
+      }
+    }else if(!r.first_step_result||!r.first_step_result.data||r.first_step_result.data.length===0){
+      addMsg('agent','<i style="color:var(--muted)">⚠ 该场景暂无指标数据，请先在数据源管理页面上传数据</i>');
     }
 
-    if (result.intent.matched_keywords && result.intent.matched_keywords.length > 0) {
-      lines.push('<b>🔑 匹配关键词:</b> ' + result.intent.matched_keywords.join(', '));
-    }
-
-    addMessage('agent', lines.join('<br>'), {
-      roleName: getRoleLabel(result.role_code),
-      intent: getIntentLabel(result.intent.intent) + ' (' + Math.round(result.intent.confidence*100) + '%)',
-      traceId: result.trace_id
-    });
-
-  } catch(e) {
-    removeTyping();
-    err.textContent = '错误: ' + e.message;
-    addMessage('agent', '❌ ' + e.message, {roleName:'系统',intent:'error'});
+  }catch(e){
+    rmTyping();
+    addMsg('agent','<span style="color:var(--red)">❌ '+esc(e.message)+'</span>');
   }
 
-  btn.disabled = false;
-  input.disabled = false;
-  input.focus();
+  btn.disabled=false; input.disabled=false; input.focus();
 }
 
-function getIntentLabel(code) {
-  var m = {
-    fpy_analysis:'FPY合格率分析', mag_analysis:'磁物健康分析', abn_analysis:'异常料分析',
-    dead_stock:'呆滞库存', iqc_analysis:'IQC来料检验', pmp_analysis:'PMP过程控制',
-    coq_analysis:'COQ质量成本', equipment:'设备管理', production:'生产计划',
-    inventory:'库存管理', sales:'销售分析', general_quality:'通用品质分析'
-  };
-  return m[code] || code;
-}
+function sleep(ms){return new Promise(function(resolve){setTimeout(resolve,ms)})}
 
-function getRoleLabel(code) {
-  var m = {
-    quality_specialist:'品质专员', equipment_specialist:'设备专员',
-    production_scheduler:'生产计划专员', inventory_manager:'物控专员',
-    sales_analyst:'销售专员', admin:'系统管理员'
-  };
-  return m[code] || code;
-}
+function getIntent(c){var m={fpy_analysis:'FPY分析',mag_analysis:'磁物分析',abn_analysis:'异常料',dead_stock:'呆滞库存',iqc_analysis:'IQC检验',pmp_analysis:'PMP过程',coq_analysis:'COQ成本',equipment:'设备管理',production:'生产计划',inventory:'库存管理',sales:'销售分析',general_quality:'品质分析'};return m[c]||c}
 
-// 页面加载时检查Agent状态
-authFetch(API + '/agent/scenes').then(function(r){return r.json()}).then(function(d){
-  if (d.code === 0 && d.data) {
-    document.getElementById('agentStatus').textContent = '🟢 ' + d.data.length + '个Agent就绪';
-  }
+function getRole(c){var m={quality_specialist:'品质专员',equipment_specialist:'设备专员',production_scheduler:'生产计划',inventory_manager:'物控专员',sales_analyst:'销售分析',admin:'管理员'};return m[c]||c}
+
+// 初始化
+authFetch(API+'/agent/scenes').then(function(r){return r.json()}).then(function(d){
+  if(d.code===0&&d.data)document.getElementById('agentStatus').textContent='🟢 '+d.data.length+'个Agent就绪';
 }).catch(function(){});
 
-// 自动调整textarea高度
-document.getElementById('userInput').addEventListener('input', function(){
-  this.style.height = 'auto';
-  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+document.getElementById('userInput').addEventListener('input',function(){
+  this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';
 });
 </script>
 </body>
