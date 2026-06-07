@@ -82,7 +82,7 @@ function esc(s){return (s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;
 async function loadRoles() {
   const badge = document.getElementById('roleStatus');
   try {
-    const r = await fetch(API+'/roles').then(r=>r.json());
+    const r = await authFetch(API+'/roles').then(r=>r.json());
     if (r.code === 0) {
       const roles = r.data.roles || [];
       const grid = document.getElementById('roleGrid');
@@ -94,7 +94,11 @@ async function loadRoles() {
         a.innerHTML = '<div class="icon">'+(ICON_MAP[role.icon]||'📊')+'</div><h3>'+esc(role.role_name)+'</h3><p>'+esc(role.description||'')+'</p><div class="scene-count">'+(role.scene_count||0)+'个场景</div>';
         grid.appendChild(a);
       });
-      badge.textContent = '✅ '+roles.length+'个角色 · 27张系统表 · 451条模拟数据';
+      badge.innerHTML = '✅ '+roles.length+'个角色 · 27张系统表 · 451条模拟数据 · 🔑 已登录';
+    }
+  } else if (r.code === 401) {
+      badge.innerHTML = '<span style="color:#ef4444">⚠️ 登录已过期</span> <a href="/xiyi-login.html" style="color:#3b82f6;cursor:pointer">重新登录</a>';
+      return;
     }
   } catch(e) {
     badge.textContent = '❌ '+e.message;
