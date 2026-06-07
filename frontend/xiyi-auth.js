@@ -12,7 +12,7 @@
     opts = opts || {};
     opts.headers = opts.headers || {};
     if (token) {
-      opts.headers['Authorization'] = '***' + token;
+      opts.headers['Authorization'] = 'Bearer ' + token;
     }
     return fetch(url, opts);
   };
