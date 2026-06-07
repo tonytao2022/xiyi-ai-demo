@@ -151,7 +151,7 @@ async function sendMessage(){
   
   btn.disabled=true; input.disabled=true;
   addMsg('user',esc(text));
-  input.value=''; addTyping();
+  input.value=''; var sr=/^[选AaBbCcDdEe是是否否]$/.test(text)||/^[A-Ea-e]$/.test(text); if(sr&&currentTraceId){addTyping(); await pollAIResult2(currentTraceId); btn.disabled=false; input.disabled=false; input.focus(); return;} addTyping();
 
   try{
     // Step 1: 意图分类
@@ -267,6 +267,7 @@ async function sendMessage(){
 }
 
 function sleep(ms){return new Promise(function(resolve){setTimeout(resolve,ms)})}
+function pollAIResult2(traceId){var p=true,a=0,m=60;addTyping();var se=document.getElementById('typing');if(se){se.innerHTML='<div class="msg-bubble"><b>🧠 AI分析中...</b><div class="progress-bar"><div class="fill" style="width:5%"></div></div><div class="progress-text">准备数据...</div></div>'};var poll=setInterval(async function(){a++;try{var s=await authFetch(API+'/agent/analyze/result/'+traceId).then(function(r){return r.json()});if(s.code===0){var st=s.data;var f=document.querySelector('#typing .fill');var t=document.querySelector('#typing .progress-text');if(f)f.style.width=(st.pct||5)+'%';if(t)t.textContent=(st.progress||'处理中...')+' ('+(st.pct||0)+'%, '+Math.round(a*3)+'秒)';if(st.status==='done'||st.status==='error'){clearInterval(poll);rmTyping();if(st.status==='done'&&st.result&&st.result.ai_analysis){var h='<div class="ai-result">'+md2html(st.result.ai_analysis)+'</div>';if(st.result.has_alarm)h='<span class="alarm-tag">⚠ 异常</span>'+h;h+='<div class="trace-id">✅ 完成 · trace:'+traceId.substring(0,12)+'...</div>';addMsg('agent',h)}}}if(a>=m){clearInterval(poll);rmTyping()}}catch(e){if(a>=m){clearInterval(poll);rmTyping()}}},3000)}
 
 function getIntent(c){var m={fpy_analysis:'FPY分析',mag_analysis:'磁物分析',abn_analysis:'异常料',dead_stock:'呆滞库存',iqc_analysis:'IQC检验',pmp_analysis:'PMP过程',coq_analysis:'COQ成本',equipment:'设备管理',production:'生产计划',inventory:'库存管理',sales:'销售分析',general_quality:'品质分析'};return m[c]||c}
 
