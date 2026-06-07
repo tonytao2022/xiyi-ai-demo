@@ -185,7 +185,13 @@ async function sendMessage(){
     if(wf.length){
       h+='<b>📝 执行计划:</b> ';
       var icons={query:'📊',ai_analysis:'🧠',rule_check:'✅',manual_input:'✋',decision:'🎯'};
-      h+=wf.map(function(s){return icons[s.type]||'📌'}).join(' → ');
+      h+='<div style="margin:6px 0 0 0;display:flex;flex-wrap:wrap;gap:6px">';
+      wf.forEach(function(s,i){
+        var icon=icons[s.type]||'📌';
+        var name=s.name||s.type||'步骤';
+        h+='<span style="font-size:11px;background:var(--bg);padding:3px 10px;border-radius:10px;color:var(--text2)">'+(s.order||(i+1))+'. '+icon+' '+esc(name)+'</span>';
+      });
+      h+='</div>';
     }
 
     if(r.first_step_result&&r.first_step_result.data&&r.first_step_result.data.length>0){
