@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="xiyi-theme.css?v=6">
+  <title>场景管理 · 兮易AI大脑</title>
+<style>
+/* scenes-manager 特有样式 */
+.header h1{font-size:20px;color:#fff}
+.header .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.scene-grid,.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px}
+.scene-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;cursor:pointer;transition:all .15s}
+.scene-card:hover{transform:translateY(-2px);border-color:var(--blue)}
+.scene-card .icon{font-size:28px;margin-bottom:8px}
+.scene-card .name{font-size:14px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.scene-card .desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px}
+.scene-card .meta{font-size:11px;color:var(--muted);display:flex;gap:12px}
+.scene-card .step-bar{display:flex;gap:3px;margin-top:10px}
+.scene-card .step-dot{width:20px;height:4px;border-radius:2px;background:var(--bg2)}
+.scene-card .step-dot.done{background:var(--green)}
+.scene-card .step-dot.active{background:var(--blue)}
+/* FIXED: P2-4 分页样式 */
+.pagination{display:flex;justify-content:center;align-items:center;gap:4px;padding:12px 0}
+.pagination .page-btn{padding:4px 10px;border:1px solid var(--border);border-radius:4px;font-size:11px;cursor:pointer;color:var(--text2);background:transparent;transition:all .15s}
+.pagination .page-btn:hover{border-color:var(--blue);color:var(--blue)}
+.pagination .page-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.pagination .page-btn:disabled{opacity:0.3;cursor:default}
+.pagination .page-info{font-size:11px;color:var(--muted);margin:0 6px}
+/* P2-4 分页样式 */
+.pagination{display:flex;justify-content:center;align-items:center;gap:4px;padding:12px 0}
+.pagination .page-btn{padding:4px 10px;border:1px solid var(--border);border-radius:4px;font-size:11px;cursor:pointer;color:var(--text2);background:transparent;transition:all .15s}
+.pagination .page-btn:hover{border-color:var(--blue);color:var(--blue)}
+.pagination .page-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.pagination .page-btn:disabled{opacity:0.3;cursor:default}
+.pagination .page-info{font-size:11px;color:var(--muted);margin:0 6px}
+
+/* 场景管理特有 - 覆盖theme.css通用.card */
+.cat-grid{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.cat-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;color:var(--text2);background:transparent;transition:all .15s}
+.cat-btn:hover,.cat-btn.active{color:#fff;border-color:var(--blue);background:rgba(59,130,246,0.1)}
+.grid .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;overflow:hidden;cursor:pointer;transition:all .15s;margin-bottom:0}
+.grid .card:hover{transform:translateY(-2px);border-color:var(--blue)}
+.grid .card-h{display:flex;gap:12px;padding:16px;align-items:flex-start;border-bottom:none}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.card-body{flex:1}
+.card-body .cat{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:rgba(59,130,246,0.1);color:var(--blue);margin-bottom:6px}
+.card-body .name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+.card-body .desc{font-size:12px;color:var(--text2);line-height:1.5}
+.card-footer{display:flex;gap:12px;padding:10px 16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+
+</style>
+
+  <script src="/xiyi-auth.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📋 工作场景管理</h1>
+    <div class="sub" id="sceneCount">加载中...</div>
+  </div>
+  <div>
+    <a href="/xiyi-quality-workbench.html" class="btn">← 返回工作台</a>
+    <button class="btn btn-outline" onclick="loadSceneList()">🔄 刷新</button>
+  </div>
+</div>
+
+<div class="cat-grid" id="categoryFilter">
+  <button class="cat-btn active" onclick="filterScenes('all',this)">全部</button>
+</div>
+
+<div id="sceneGrid" class="grid"><div class="loading">加载场景数据...</div></div>
+
+<script>
+const API = '/api/v1/xiyi';
+
+function getIcon(cat) {
+  var map = {'品质监控':'📈','过程分析':'🔍','库存预警':'⚠️','资产优化':'💰','供应商质量':'📦','过程品控':'⚙️','成本分析':'💹'};
+  return map[cat] || '📋';
+}
+
+function getColor(cat) {
+  var map = {'品质监控':'warning','过程分析':'success','库存预警':'danger','资产优化':'warning','供应商质量':'blue','过程品控':'info','成本分析':'cost'};
+  return map[cat] || 'blue';
+}
+
+var allScenes = [];
+
+async function loadSceneList() {
+  document.getElementById('sceneCount').textContent = '加载中...';
+  try {
+    var r = await authFetch(API + '/scenes').then(r=>r.json());
+    if (r.code !== 0) return;
+    allScenes = r.data.scenes || [];
+    
+    // 分类筛选按钮
+    var cats = ['全部'];
+    allScenes.forEach(function(s) { if (cats.indexOf(s.category) < 0) cats.push(s.category); });
+    var catHtml = '';
+    cats.forEach(function(c) {
+      catHtml += '<button class="cat-btn' + (c === '全部' ? ' active' : '') + '" onclick="filterScenes(\'' + c + '\',this)">' + c + '</button>';
+    });
+    document.getElementById('categoryFilter').innerHTML = catHtml;
+    
+    renderScenes(allScenes);
+    document.getElementById('sceneCount').textContent = '共 ' + allScenes.length + ' 个工作场景';
+  } catch(e) {
+    document.getElementById('sceneCount').textContent = '❌ ' + e.message;
+  }
+}
+
+// FIXED: P2-4 场景列表分页
+var _scenePage = 1;
+var _currentFilteredScenes = [];
+
+function renderScenes(scenes) {
+  _currentFilteredScenes = scenes;
+  renderScenePage();
+}
+
+function renderScenePage() {
+  var pg = paginateItems(_currentFilteredScenes, _scenePage);
+  _scenePage = pg.page;
+  var html = '';
+  pg.items.forEach(function(s) {
+    var icon = getIcon(s.category);
+    html += '<div class="card" onclick="showSceneDetail(' + s.id + ')">' +
+      '<div class="card-h">' +
+        '<div class="card-icon" style="background:rgba(59,130,246,0.1)">' + icon + '</div>' +
+        '<div class="card-body">' +
+          '<div class="cat">' + (s.category||'') + '</div>' +
+          '<div class="name">' + (s.scene_name||'') + '</div>' +
+          '<div class="desc">' + ((s.description||'').length > 100 ? (s.description||'').slice(0,100) + '...' : s.description||'') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card-footer">' +
+        '<span class="meta">' + (s.step_count||7) + '步流程</span>' +
+        '<span class="meta">' + (s.scene_code||'') + '</span>' +
+      '</div></div>';
+  });
+  var pgHtml = html || '<div class="loading">暂无匹配场景</div>';
+  pgHtml += '<div id="sceneGridPagination"></div>';
+  document.getElementById('sceneGrid').innerHTML = pgHtml;
+  renderPagination('sceneGridPagination', pg.page, pg.totalPages, 'switchSceneGridPage');
+}
+
+function switchSceneGridPage(p) { _scenePage = p; renderScenePage(); }
+
+function filterScenes(cat, btn) {
+  document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  
+  if (cat === '全部') {
+    renderScenes(allScenes);
+  } else {
+    renderScenes(allScenes.filter(function(s) { return s.category === cat; }));
+  }
+}
+
+function showSceneDetail(id) {
+  window.open('/xiyi-diagnose.html?scene=' + id, 'sceneDetail', 'width=900,height=700');
+}
+
+loadSceneList();
+</script>
+
+<!-- FIXED: P2-4 前端分页帮助函数 -->
+<script>
+var PAGE_SIZE = 20;
+
+function paginateItems(items, page) {
+  var totalPages = Math.ceil(items.length / PAGE_SIZE) || 1;
+  page = Math.max(1, Math.min(page, totalPages));
+  var start = (page - 1) * PAGE_SIZE;
+  var end = Math.min(start + PAGE_SIZE, items.length);
+  var pageItems = items.slice(start, end);
+  return { items: pageItems, page: page, totalPages: totalPages, start: start, end: end, total: items.length };
+}
+
+function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  
+  var html = '<div class="pagination">';
+  html += '<button class="page-btn" onclick="'+onPageChange+'('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+'>‹</button>';
+  
+  var startP = Math.max(1, currentPage - 2);
+  var endP = Math.min(totalPages, currentPage + 2);
+  
+  if (startP > 1) { html += '<button class="page-btn" onclick="'+onPageChange+'(1)">1</button>'; if (startP > 2) html += '<span class="page-info">...</span>'; }
+  for (var p = startP; p <= endP; p++) {
+    html += '<button class="page-btn '+(p===currentPage?'active':'')+'" onclick="'+onPageChange+'('+p+')">'+p+'</button>';
+  }
+  if (endP < totalPages) { if (endP < totalPages - 1) html += '<span class="page-info">...</span>'; html += '<button class="page-btn" onclick="'+onPageChange+'('+totalPages+')">'+totalPages+'</button>'; }
+  
+  html += '<button class="page-btn" onclick="'+onPageChange+'('+(currentPage+1)+')" '+(currentPage>=totalPages?'disabled':'')+'>›</button>';
+  html += '<span class="page-info">' + (currentPage) + '/' + totalPages + '</span>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+</script>
+</body>
+</html>

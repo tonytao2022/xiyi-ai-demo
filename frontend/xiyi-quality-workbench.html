@@ -65,6 +65,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
 .stat-box .lbl{font-size:11px;color:var(--text-muted);margin-top:2px}
 @media(max-width:768px){.sidebar{display:none}.main-content{margin-left:0;padding:16px}.grid-2{grid-template-columns:1fr}.chart-row{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
+  <script src="/xiyi-auth.js"></script>
 </head>
 <body>
 
@@ -76,11 +77,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="sub">品质专员 · 数据驱动</div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-section">导航菜单</div>
+            <div class="nav-section">导航菜单</div>
       <div class="nav-item active" onclick="switchPage('dashboard')">
         <span class="icon">🏠</span> 工作台总览
       </div>
-      
       <div class="nav-item" onclick="window.location.href='/xiyi-scenes-manager.html'">
         <span class="icon">📋</span> 场景管理
       </div>
@@ -93,12 +93,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Micr
       <div class="nav-item" onclick="switchPage('standards')">
         <span class="icon">📐</span> 数据标准
       </div>
+      <div class="nav-item" onclick="window.location.href='/xiyi-capa-manager.html'">
+        <span class="icon">🔄</span> CAPA管理
+      </div>
       <div style="border-top:1px solid var(--border-color);margin:12px 20px 0;"></div>
+      <div class="nav-item" onclick="window.location.href='/xiyi-agent-admin.html'" style="font-size:12px">
+        <span class="icon">🧠</span> AI引擎管理
+      </div>
       <div class="nav-item" onclick="window.location.href='/xiyi-config-console.html'" style="font-size:12px">
         <span class="icon">⚙️</span> 系统配置
-      </div>
-      <div class="nav-item" onclick="window.location.href='/xiyi-capa-manager.html'" style="font-size:12px">
-        <span class="icon">🔄</span> CAPA管理
       </div>
       <div class="nav-item" onclick="window.location.href='/xiyi-index.html'" style="font-size:12px">
         <span class="icon">↩</span> 返回首页
@@ -266,7 +269,7 @@ async function loadAll() {
   const _days = ['日','一','二','三','四','五','六'];
   document.getElementById('welcomeMsg').textContent = '欢迎回来，品质专家！今天是' + _now.getFullYear() + '年' + (_now.getMonth()+1) + '月' + _now.getDate() + '日星期' + _days[_now.getDay()] + '。这是为您整合的核心指标与工作场景。';
     // 1. 实时KPI
-    const kpiR = await fetch('/api/v1/xiyi/mock/kpi').then(r=>r.json());
+    const kpiR = await authFetch('/api/v1/xiyi/mock/kpi').then(r=>r.json());
     if (kpiR.code === 0) {
       const rkpis = kpiR.data.kpis || [];
       if (rkpis.length > 0) {
@@ -278,7 +281,7 @@ async function loadAll() {
       }
     }
     // 2. 场景
-    const sr = await fetch('/api/v1/xiyi/roles/quality_specialist/scenes').then(r=>r.json());
+    const sr = await authFetch('/api/v1/xiyi/roles/quality_specialist/scenes').then(r=>r.json());
     if (sr.code === 0) {
       const scenes = sr.data.scenes || [];
       document.getElementById('sceneGrid').innerHTML = scenes.map(s =>
@@ -287,7 +290,7 @@ async function loadAll() {
     }
     // 3. 预警信息（从sys_alert表读取）
     try {
-      const ar = await fetch('/api/v1/xiyi/alerts?limit=10').then(r=>r.json());
+      const ar = await authFetch('/api/v1/xiyi/alerts?limit=10').then(r=>r.json());
       if (ar.code === 0) {
         const alerts = ar.data.alerts || [];
         const unread = ar.data.unread_count || 0;
@@ -305,7 +308,7 @@ async function loadAll() {
     }
     // 4. 任务（从sys_task表读取）
     try {
-      const tr = await fetch('/api/v1/xiyi/tasks?limit=10').then(r=>r.json());
+      const tr = await authFetch('/api/v1/xiyi/tasks?limit=10').then(r=>r.json());
       if (tr.code === 0) {
         const tasks = tr.data.tasks || [];
         const unfin = tr.data.unfinished_count || 0;
@@ -325,7 +328,7 @@ async function loadAll() {
     }
     // 5. 新闻（从sys_news表读取）
     try {
-      const nr = await fetch('/api/v1/xiyi/news?limit=10').then(r=>r.json());
+      const nr = await authFetch('/api/v1/xiyi/news?limit=10').then(r=>r.json());
       if (nr.code === 0) {
         const news = nr.data.news || [];
         const unread = nr.data.unread_count || 0;
@@ -341,6 +344,41 @@ async function loadAll() {
     } catch(e) {
       document.getElementById('newsPanel').innerHTML = '<div style="font-size:12px;color:var(--text-muted)">暂无动态</div>';
     }
+    
+    // 6. 指标体系（核心KPI）
+    try {
+      const ir = await authFetch('/api/v1/xiyi/indicators').then(r=>r.json());
+      if (ir.code === 0) {
+        const inds = ir.data.indicators || [];
+        document.getElementById('indicatorFullList').innerHTML = inds.map(function(ind){
+          var c = ind.alert_level === 'danger' ? 'var(--color-defect)' : ind.alert_level === 'warning' ? 'var(--color-warning)' : 'var(--color-bear)';
+          var unit = ind.unit || '';
+          return '<div class="kpi-card" onclick="showKpiDetail(\'' + ind.indicator_code + '\')">' +
+            '<div class="kpi-label">' + ind.indicator_name + '</div>' +
+            '<div class="kpi-value" style="color:' + c + '">' + (Number(ind.threshold_lower).toFixed(2)||'0') + '~' + (ind.threshold_upper?Number(ind.threshold_upper).toFixed(2):'∞') + '<span style="font-size:13px;color:var(--text-muted)"> ' + unit + '</span></div>' +
+            '<div class="kpi-target">' + (ind.category_name||'') + '</div>' +
+          '</div>';
+        }).join('');
+      }
+    } catch(e) {
+      document.getElementById('indicatorFullList').innerHTML = '<div class="empty">暂无指标数据</div>';
+    }
+    // 8. 数据标准
+    try {
+      const sr = await authFetch('/api/v1/xiyi/standards').then(r=>r.json());
+      if (sr.code === 0) {
+        const stds = sr.data.standards || [];
+        document.getElementById('stdTableBody').innerHTML = stds.map(function(s){
+          return '<tr><td style="padding:8px;border-bottom:1px solid var(--border-color);color:var(--color-hold);font-size:12px">' + (s.standard_code||'') + '</td>' +
+            '<td style="padding:8px;border-bottom:1px solid var(--border-color);font-size:12px">' + (s.standard_name||'') + '</td>' +
+            '<td style="padding:8px;border-bottom:1px solid var(--border-color);font-size:12px;color:var(--text-secondary)">' + (s.data_type||'') + '</td>' +
+            '<td style="padding:8px;border-bottom:1px solid var(--border-color);font-size:12px;color:var(--text-secondary)">' + (s.description||'') + '</td></tr>';
+        }).join('');
+      }
+    } catch(e) {
+      document.getElementById('stdTableBody').innerHTML = '<tr><td colspan="4" style="padding:16px;text-align:center;color:var(--text-muted)">暂无标准数据字段</td></tr>';
+    }
+
     badge.textContent = '\u2705 \u5DF2\u8FDE\u63A5';
   } catch(e) {
     badge.textContent = '\u274C ' + e.message;
@@ -349,7 +387,7 @@ async function loadAll() {
 
 // 全部标为已读
 function markAllRead() {
-  fetch('/api/v1/xiyi/news/read', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({})})
+  authFetch('/api/v1/xiyi/news/read', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({})})
   .then(function(r){return r.json();})
   .then(function(resp){
     if (resp.code === 0) {
@@ -371,7 +409,7 @@ function aiAnalyze(sceneId, sceneName) {
   const btn = event && event.target ? event.target : null;
   if (btn) { btn.textContent = '⏳ AI分析中...'; btn.disabled = true; }
   
-  fetch('/api/v1/xiyi/analysis/ai-run', {
+  authFetch('/api/v1/xiyi/analysis/ai-run', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
