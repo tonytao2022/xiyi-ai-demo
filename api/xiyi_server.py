@@ -844,6 +844,91 @@ def save_agent_memory():
     return api_success({'status': 'saved'})
 
 
+
+@app.route('/api/v1/xiyi/agent/analyze', methods=['POST'])
+@api_handler
+def agent_analyze():
+    """手动触发AI分析: 给定trace_id → 后台执行openclaw推理"""
+    from agent_runner import run_ai_analysis
+    data = request.get_json() or {}
+    trace_id = data.get('trace_id', '')
+    scene_code = data.get('scene_code', '')
+    metrics = data.get('metrics', {})
+    
+    if not trace_id:
+        return api_error('缺少参数: trace_id')
+    
+    # 获取场景信息
+    with get_cursor() as cur:
+        cur.execute("SELECT id, scene_name FROM ap_scene_config WHERE scene_code=%s LIMIT 1", (scene_code,))
+        scene = cur.fetchone()
+        if not scene:
+            return api_error('场景不存在: ' + scene_code, 404)
+        
+        # 获取提示词
+        cur.execute("SELECT template_code, system_prompt, temperature, model FROM ag_prompt_template WHERE scene_id=%s AND is_active=1 LIMIT 1", (scene['id'],))
+        pt = cur.fetchone()
+        prompt = dict(pt) if pt else None
+    
+    result = run_ai_analysis(
+        trace_id, scene['id'], scene_code, scene['scene_name'],
+        metrics, prompt
+    )
+    return api_success(result)
+
+
+@app.route('/api/v1/xiyi/agent/analyze/result/<trace_id>', methods=['GET'])
+@api_handler
+def agent_analyze_result(trace_id):
+    """查询AI分析结果(轮询用)"""
+    with get_cursor() as cur:
+        cur.execute("SELECT id, status, result, input_params, started_at, completed_at FROM ag_agent_task WHERE trace_id=%s", (trace_id,))
+        task = cur.fetchone()
+        if not task:
+            return api_error('trace_id不存在', 404)
+        
+        task_dict = dict(task)
+        params = json.loads(task_dict.get('input_params', '{}')) if task_dict.get('input_params') else {}
+        result_data = json.loads(task_dict.get('result', '{}')) if task_dict.get('result') else {}
+        
+        return api_success({
+            'trace_id': trace_id,
+            'status': task_dict['status'],
+            'progress': params.get('progress', ''),
+            'pct': params.get('pct', 0),
+            'step': params.get('step', ''),
+            'result': result_data if task_dict['status'] == 'done' else None,
+            'started_at': str(task_dict.get('started_at', '')),
+            'completed_at': str(task_dict.get('completed_at', '')),
+        })
+
+
+
+@app.route('/api/v1/xiyi/agent/knowledge/<scene_code>', methods=['GET'])
+@api_handler
+def agent_knowledge(scene_code):
+    """查询场景关联的知识库"""
+    with get_cursor() as cur:
+        cur.execute("""
+            SELECT kb_code, kb_type, title, content, tags
+            FROM ag_knowledge_base 
+            WHERE scene_id=(SELECT id FROM ap_scene_config WHERE scene_code=%s LIMIT 1) AND is_active=1
+            ORDER BY 
+              CASE kb_type 
+                WHEN 'standard' THEN 1 
+                WHEN 'sop' THEN 2 
+                WHEN 'capa_case' THEN 3 
+                WHEN 'tech_doc' THEN 4 
+                ELSE 5 
+              END
+        """, (scene_code,))
+        items = [dict(r) for r in cur.fetchall()]
+    return api_success({
+        'scene_code': scene_code,
+        'knowledge_count': len(items),
+        'items': items,
+    })
+
 @app.route('/api/v1/xiyi/alerts', methods=['GET'])
 @api_handler
 def list_alerts():

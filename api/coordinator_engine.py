@@ -279,6 +279,35 @@ def dispatch_agent(trace_id: str, scene_code: str, role_code: str, user_input: s
         if first_step['type'] == 'query' and first_step['tool']:
             step_result = _execute_query_tool(first_step['tool'], trace_id, scene_code)
             result['first_step_result'] = step_result
+            
+            # 如果有数据+有AI分析步骤, 自动触发
+            has_ai_step = any(s['type'] == 'ai_analysis' for s in context['workflow_steps'])
+            if step_result.get('data') and len(step_result['data']) > 0 and has_ai_step:
+                try:
+                    from agent_runner import execute_workflow
+                    # 获取场景ID和名称
+                    scene_row = _q(
+                        "SELECT id, scene_name FROM ap_scene_config WHERE scene_code=%s LIMIT 1",
+                        (scene_code,), fetch='one'
+                    )
+                    if scene_row:
+                        metrics = {item['code']: {'value': item['value'], 'time': item['time']} 
+                                   for item in step_result['data']}
+                        wf_result = execute_workflow(
+                            trace_id, scene_code, scene_row[0], 
+                            metrics, context['prompt_template']
+                        )
+                        result['workflow_triggered'] = True
+                        result['ai_status'] = wf_result
+                        # 更新任务状态
+                        _q(
+                            "UPDATE ag_agent_task SET status='running', started_at=NOW() WHERE trace_id=%s",
+                            (trace_id,), fetch='none'
+                        )
+                except Exception as e:
+                    logger.warning(f"AI trigger failed: {e}")
+                    result['workflow_triggered'] = False
+                    result['ai_trigger_error'] = str(e)
 
     return result
 
