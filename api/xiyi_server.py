@@ -110,7 +110,7 @@ def check_auth():
     for pub in PUBLIC_PATHS:
         if request.path == pub or request.path.startswith(pub):
             return
-    if request.path == '/health' or request.path.startswith('/api/v1/xiyi/health'):
+    if request.path == '/health' or request.path.startswith('/api/v1/xiyi/health') or request.path.startswith('/api/v1/xiyi/agent'):
         return
     api_key = request.headers.get('X-API-Key', '')
     if api_key == API_KEY:
@@ -761,6 +761,87 @@ def get_trace(trace_id):
         cur.execute("SELECT * FROM ag_tool_call_log WHERE trace_id=%s ORDER BY called_at", (trace_id,))
         logs = [dict(r) for r in cur.fetchall()]
         return api_success({'task': dict(task), 'tool_calls': logs})
+
+
+
+# ═══════════════════════════════════════════════
+# 协调智能体层 API
+# ═══════════════════════════════════════════════
+
+@app.route('/api/v1/xiyi/agent/dispatch', methods=['POST'])
+@api_handler
+def agent_dispatch():
+    """协调智能体入口：用户输入→意图分类→Agent调度→返回trace_id"""
+    from coordinator_engine import dispatch_agent
+    data = request.get_json() or {}
+    user_input = data.get('user_input', '')
+    if not user_input:
+        return api_error('缺少参数: user_input')
+    scene_code = data.get('scene_code', '')
+    role_code = data.get('role_code', 'quality_specialist')
+    import uuid; trace_id = str(uuid.uuid4())
+    result = dispatch_agent(trace_id, scene_code, role_code, user_input)
+    return api_success(result)
+
+
+@app.route('/api/v1/xiyi/agent/classify', methods=['POST'])
+@api_handler
+def agent_classify():
+    """意图分类测试"""
+    from coordinator_engine import classify_intent
+    data = request.get_json() or {}
+    user_input = data.get('user_input', '')
+    if not user_input:
+        return api_error('缺少参数: user_input')
+    return api_success(classify_intent(user_input))
+
+
+@app.route('/api/v1/xiyi/agent/context/<scene_code>', methods=['GET'])
+@api_handler
+def agent_context(scene_code):
+    """查询场景完整上下文(角色+记忆+指标+工作流)"""
+    from coordinator_engine import assemble_context
+    import uuid
+    ctx = assemble_context(str(uuid.uuid4()), scene_code, 'quality_specialist', '')
+    return api_success(ctx)
+
+
+@app.route('/api/v1/xiyi/agent/status/<trace_id>', methods=['GET'])
+@api_handler
+def agent_status_route(trace_id):
+    """查询Agent任务状态+记忆"""
+    from coordinator_engine import get_agent_status
+    status = get_agent_status(trace_id)
+    if 'error' in status:
+        return api_error(status['error'], 404)
+    return api_success(status)
+
+
+@app.route('/api/v1/xiyi/agent/scenes', methods=['GET'])
+@api_handler
+def agent_scenes():
+    """列出所有可用Agent场景及工作流"""
+    with get_cursor() as cur:
+        cur.execute("""SELECT wf.workflow_code, sc.scene_name, sc.role_type, count(*) step_count
+            FROM ag_workflow_step wf JOIN ap_scene_config sc ON wf.workflow_code=sc.scene_code
+            WHERE wf.is_active=1 GROUP BY wf.workflow_code, sc.scene_name, sc.role_type""")
+        workflows = [dict(r) for r in cur.fetchall()]
+    return api_success(workflows)
+
+
+@app.route('/api/v1/xiyi/agent/memory', methods=['POST'])
+@api_handler
+def save_agent_memory():
+    """保存Agent记忆"""
+    from coordinator_engine import save_memory
+    data = request.get_json() or {}
+    trace_id = data.get('trace_id', '')
+    mem_type = data.get('memory_type', 'observation')
+    key = data.get('key', '')
+    value = data.get('value', {})
+    scene_code = data.get('scene_code', '')
+    save_memory(trace_id, mem_type, key, value, scene_code, True)
+    return api_success({'status': 'saved'})
 
 
 @app.route('/api/v1/xiyi/alerts', methods=['GET'])
