@@ -88,6 +88,7 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg)
 
 <div class="input-area">
   <div class="input-box">
+    <select id="modelSelect" onchange="onModelChange()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:12px;outline:none;min-width:130px"><option>加载中...</option></select>
     <textarea id="userInput" placeholder="输入业务问题，如: FPY合格率为什么下降了？" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
     <button id="sendBtn" onclick="sendMessage()">发送</button>
   </div>
@@ -272,6 +273,27 @@ function pollAIResult2(traceId){var p=true,a=0,m=60;addTyping();var se=document.
 function getIntent(c){var m={fpy_analysis:'FPY分析',mag_analysis:'磁物分析',abn_analysis:'异常料',dead_stock:'呆滞库存',iqc_analysis:'IQC检验',pmp_analysis:'PMP过程',coq_analysis:'COQ成本',equipment:'设备管理',production:'生产计划',inventory:'库存管理',sales:'销售分析',general_quality:'品质分析'};return m[c]||c}
 
 function getRole(c){var m={quality_specialist:'品质专员',equipment_specialist:'设备专员',production_scheduler:'生产计划',inventory_manager:'物控专员',sales_analyst:'销售分析',admin:'管理员'};return m[c]||c}
+
+// 加载模型列表
+var currentModel='deepseek-chat';
+async function loadModels(){
+  try{
+    var r=await authFetch(API+'/models').then(function(r){return r.json()});
+    if(r.code===0&&r.data){
+      var sel=document.getElementById('modelSelect');
+      sel.innerHTML='';
+      var models=r.data.models.filter(function(m){return m.model_type==='LLM'&&m.status==='published'});
+      models.forEach(function(m){
+        var o=document.createElement('option');
+        o.value=m.model_code; o.textContent=m.model_name;
+        if(m.model_code===r.data.default_model){o.selected=true;currentModel=m.model_code}
+        sel.appendChild(o);
+      });
+    }
+  }catch(e){}
+}
+function onModelChange(){currentModel=document.getElementById('modelSelect').value}
+loadModels();
 
 // 初始化
 authFetch(API+'/agent/scenes').then(function(r){return r.json()}).then(function(d){

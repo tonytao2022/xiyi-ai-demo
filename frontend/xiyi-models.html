@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>模型平台管理</title>
+<style>
+:root{--bg:#0a0e17;--bg2:#111827;--card:#1e2940;--border:#1e2d4a;--text:#e2e8f0;--text2:#94a3b8;--muted:#64748b;--blue:#3b82f6;--green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--purple:#8b5cf6;--radius:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px}
+.header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.header h1{font-size:20px;background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header a{color:var(--text2);text-decoration:none;font-size:13px;padding:4px 12px;border-radius:6px}
+.header a:hover{background:rgba(59,130,246,0.1);color:var(--blue)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card h2{font-size:15px;margin-bottom:12px;color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 12px;color:var(--muted);font-size:12px;border-bottom:2px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+.badge{padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600}
+.badge-pub{background:rgba(34,197,94,0.1);color:var(--green)}
+.badge-draft{background:rgba(59,130,246,0.1);color:var(--blue)}
+.badge-depr{background:rgba(239,68,68,0.1);color:var(--red)}
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;margin:0 4px}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-red{background:var(--red);color:#fff}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.stat .n{font-size:28px;font-weight:700}
+.stat .l{font-size:12px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🧩 模型平台</h1>
+  <a href="/xiyi-index.html">首页</a>
+  <a href="/xiyi-agent-chat.html">智能对话</a>
+</div>
+
+<div class="stats-grid" id="statsGrid"></div>
+
+<div class="card">
+  <h2>📋 已注册模型 <span id="modelCount" style="font-weight:400;font-size:12px;color:var(--muted)"></span></h2>
+  <table><thead><tr><th>模型编码</th><th>名称</th><th>类型</th><th>提供商</th><th>状态</th><th>最大Tokens</th><th>成本/1K</th><th>操作</th></tr></thead><tbody id="modelTable"></tbody></table>
+</div>
+
+<div class="card">
+  <h2>⚙️ 默认模型与场景绑定</h2>
+  <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+    <b style="font-size:13px">系统默认:</b>
+    <select id="defaultSelect" onchange="setDefault()" style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px"></select>
+  </div>
+  <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px" id="sceneBindings"></div>
+</div>
+
+<script src="/xiyi-auth.js?v=2"></script>
+<script>
+var models=[],defaultModel='';
+
+async function load(){
+  var r=await authFetch('/api/v1/xiyi/models').then(function(r){return r.json()});
+  if(r.code!==0)return;
+  models=r.data.models||[];
+  defaultModel=r.data.default_model||'deepseek-chat';
+  document.getElementById('modelCount').textContent=models.length+'个模型';
+  renderTable();
+  renderStats(models);
+}
+
+function renderTable(){
+  var h='';
+  models.forEach(function(m){
+    var badge=m.status==='published'?'badge-pub':m.status==='draft'?'badge-draft':'badge-depr';
+    var label=m.status==='published'?'启用':m.status==='draft'?'草稿':'弃用';
+    var provider=(m.engine_config||{}).provider||'-';
+    h+='<tr>';
+    h+='<td>'+m.model_code+'</td><td>'+m.model_name+'</td><td>'+m.model_type+'</td><td>'+provider+'</td>';
+    h+='<td><span class="badge '+badge+'">'+label+'</span></td>';
+    h+='<td>'+m.max_tokens+'</td><td>$'+(m.cost_per_1k||'?')+'</td>';
+    h+='<td>';
+    if(m.status!=='published')h+='<button class="btn btn-green" onclick=\"publish(\''+m.model_code+'\')\">启用</button>';
+    if(m.status!=='draft')h+='<button class="btn btn-blue" onclick=\"draft(\''+m.model_code+'\')\">草稿</button>';
+    if(m.status!=='deprecated')h+='<button class="btn btn-red" onclick=\"deprecate(\''+m.model_code+'\')\">弃用</button>';
+    h+='</td></tr>';
+  });
+  document.getElementById('modelTable').innerHTML=h;
+
+  // 默认模型下拉
+  var ds=document.getElementById('defaultSelect');
+  ds.innerHTML=models.filter(function(m){return m.status==='published'}).map(function(m){return '<option value="'+m.model_code+'"'+(m.model_code===defaultModel?' selected':'')+'>'+m.model_name+'</option>'}).join('');
+}
+
+function renderStats(ms){
+  var pub=ms.filter(function(m){return m.status==='published'}).length;
+  document.getElementById('statsGrid').innerHTML=[
+    {n:ms.length,l:'注册模型',c:'var(--blue)'},
+    {n:pub,l:'已启用',c:'var(--green)'},
+    {n:defaultModel,l:'系统默认',c:'var(--purple)'},
+    {n:ms.filter(function(m){return m.model_type==='LLM'}).length,l:'LLM模型',c:'var(--yellow)'}
+  ].map(function(s){return '<div class="stat"><div class="n" style="color:'+s.c+'">'+s.n+'</div><div class="l">'+s.l+'</div></div>'}).join('');
+}
+
+async function setDefault(){
+  var mc=document.getElementById('defaultSelect').value;
+  await authFetch('/api/v1/xiyi/models/default',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({model_code:mc})});
+  defaultModel=mc;renderTable();
+}
+
+async function publish(c){await authFetch('/api/v1/xiyi/models/'+c,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'published'})});load()}
+async function draft(c){await authFetch('/api/v1/xiyi/models/'+c,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'draft'})});load()}
+async function deprecate(c){await authFetch('/api/v1/xiyi/models/'+c,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'deprecated'})});load()}
+
+load();
+</script>
+</body>
+</html>

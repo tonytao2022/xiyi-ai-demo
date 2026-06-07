@@ -110,7 +110,7 @@ def check_auth():
     for pub in PUBLIC_PATHS:
         if request.path == pub or request.path.startswith(pub):
             return
-    if request.path == '/health' or request.path.startswith('/api/v1/xiyi/health') or request.path.startswith('/api/v1/xiyi/agent'):
+    if request.path == '/health' or request.path.startswith('/api/v1/xiyi/health') or request.path.startswith('/api/v1/xiyi/agent') or request.path.startswith('/api/v1/xiyi/models'):
         return
     api_key = request.headers.get('X-API-Key', '')
     if api_key == API_KEY:
@@ -928,6 +928,108 @@ def agent_knowledge(scene_code):
         'knowledge_count': len(items),
         'items': items,
     })
+
+
+# ═══════════════════════════════════════════════
+# 模型平台 API
+# ═══════════════════════════════════════════════
+
+@app.route('/api/v1/xiyi/models', methods=['GET'])
+@api_handler
+def list_models():
+    """列出所有AI模型"""
+    from model_platform import list_models, get_model_stats
+    status = request.args.get('status', '')
+    models = list_models(status if status else None)
+    stats = get_model_stats(30)
+    from model_platform import get_default_model
+    return api_success({'models': models, 'stats': stats, 'default_model': get_default_model()})
+
+
+@app.route('/api/v1/xiyi/models/<model_code>', methods=['GET'])
+@api_handler
+def get_model_detail(model_code):
+    """获取模型详情"""
+    from model_platform import get_model
+    model = get_model(model_code)
+    if not model:
+        return api_error('模型不存在: ' + model_code, 404)
+    return api_success(model)
+
+
+@app.route('/api/v1/xiyi/models/<model_code>', methods=['PUT'])
+@api_handler
+def update_model(model_code):
+    """更新模型配置"""
+    from model_platform import update_model_config, set_model_status
+    data = request.get_json() or {}
+    if 'status' in data:
+        return api_success(set_model_status(model_code, data['status']))
+    return api_success(update_model_config(model_code, data))
+
+
+@app.route('/api/v1/xiyi/models/default', methods=['GET'])
+@api_handler
+def get_default_model():
+    """获取当前默认模型"""
+    from model_platform import get_default_model
+    return api_success({'default_model': get_default_model()})
+
+
+@app.route('/api/v1/xiyi/models/default', methods=['PUT'])
+@api_handler
+def set_default_model():
+    """设置默认模型"""
+    from model_platform import set_default_model
+    data = request.get_json() or {}
+    model_code = data.get('model_code', '')
+    if not model_code:
+        return api_error('缺少参数: model_code')
+    return api_success(set_default_model(model_code))
+
+
+@app.route('/api/v1/xiyi/models/scene/<scene_code>', methods=['GET'])
+@api_handler
+def get_scene_model(scene_code):
+    """查询场景绑定的模型"""
+    from model_platform import get_scene_model
+    return api_success({'scene_code': scene_code, 'model_code': get_scene_model(scene_code)})
+
+
+@app.route('/api/v1/xiyi/models/scene/<scene_code>', methods=['PUT'])
+@api_handler
+def set_scene_model(scene_code):
+    """为场景绑定模型"""
+    from model_platform import set_scene_model
+    data = request.get_json() or {}
+    model_code = data.get('model_code', '')
+    if not model_code:
+        return api_error('缺少参数: model_code')
+    return api_success(set_scene_model(scene_code, model_code))
+
+
+@app.route('/api/v1/xiyi/models/logs', methods=['GET'])
+@api_handler
+def model_call_logs():
+    """模型调用日志"""
+    from model_platform import get_model_call_history
+    trace_id = request.args.get('trace_id', '')
+    limit = int(request.args.get('limit', 50))
+    logs = get_model_call_history(trace_id if trace_id else None, limit)
+    return api_success({'logs': logs, 'count': len(logs)})
+
+
+@app.route('/api/v1/xiyi/models/benchmark', methods=['POST'])
+@api_handler
+def model_benchmark():
+    """模型评测"""
+    from model_platform import benchmark_models
+    data = request.get_json() or {}
+    prompt = data.get('prompt', '')
+    scene_code = data.get('scene_code', '')
+    model_codes = data.get('models', None)
+    return api_success(benchmark_models(prompt, scene_code, model_codes))
+
 
 @app.route('/api/v1/xiyi/alerts', methods=['GET'])
 @api_handler
